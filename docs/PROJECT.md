@@ -12,14 +12,15 @@ This repository is a front-end prototype for an Exquisite Dentistry website lead
 - Supports persistent light and dark themes.
 - Uses supplied Exquisite Dentistry wordmark and icon assets.
 - Uses locally cached, optimized SVGL marks for Google, Instagram, TikTok, and OpenAI.
+- Shows all four source marks in an interactive attribution overview and in each lead record.
 
 ## Architecture
 
-- `src/App.tsx`: sample data, filtering, theme state, source attribution, and the lead-detail experience.
+- `src/App.tsx`: sample data, filtering, theme state, source attribution assets, source overview, and the lead-detail experience.
 - `src/components/ui.tsx`: local source-owned UI primitives following shadcn/ui composition conventions.
 - `src/styles.css`: design tokens, branded themes, responsive table/card layouts, and accessibility states.
 - `public/brand`: supplied Exquisite Dentistry PNG assets.
-- `public/logos`: optimized source-attribution SVG assets from the documented SVGL API.
+- `public/logos`: optimized source-attribution SVG assets from the documented SVGL API, normalized with the standalone SVG XML namespace.
 - `vercel.json`: Vite framework and SPA routing configuration.
 
 ## Data boundary
@@ -47,6 +48,8 @@ npm run preview
 ```
 
 The production build includes TypeScript validation followed by the Vite bundle.
+
+Source-logo verification should confirm more than a successful HTTP response: each image must have a non-zero intrinsic size and a visible rendered mark in both themes. The component selects one theme-resolved SVG, and its text fallback prevents an undecodable asset from becoming an unexplained empty slot.
 
 ## Deployment
 

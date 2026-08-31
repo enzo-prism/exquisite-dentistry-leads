@@ -18,6 +18,7 @@ The interface follows shadcn/ui's source-owned component approach and design lan
 - Keyboard-accessible lead detail drawer
 - Persistent light and dark themes
 - SVGL source marks for Google, Instagram, TikTok, and ChatGPT/OpenAI
+- Interactive source overview with one-click attribution filtering
 - Minimal modern-art visual system with restrained Exquisite Dentistry green
 - Responsive Exquisite Dentistry wordmark and icon treatments from supplied brand assets
 
@@ -50,7 +51,9 @@ Before live lead ingestion is added, the production implementation should includ
 
 ## SVGL attribution assets
 
-The Google, Instagram, TikTok, and OpenAI marks used in lead-source tags are cached local copies of the optimized SVG responses from the [official SVGL API](https://svgl.app/docs/api). The exact `api.svgl.app/svg/...` source URL is preserved as `data-svgl-url` on each rendered logo.
+The Google, Instagram, TikTok, and OpenAI marks used in lead-source tags are cached local copies of the optimized SVG responses from the [official SVGL API](https://svgl.app/docs/api). Each cached SVG is normalized with the standard SVG XML namespace so it renders reliably as a standalone image. The exact `api.svgl.app/svg/...` source URL is preserved as `data-svgl-url` on each logo frame.
+
+The interface renders a single light- or dark-theme asset at a time, avoiding selector-dependent image swapping. If a local asset cannot be decoded, the frame shows a compact text fallback instead of silently leaving an empty space.
 
 The “ChatGPT” source label uses SVGL's OpenAI mark because SVGL does not currently provide a separate ChatGPT record. Third-party trademarks remain the property of their respective owners; source badges indicate attribution only and do not imply endorsement.
 

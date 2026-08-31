@@ -49,12 +49,31 @@ const channelAssets: Record<Channel, { light: string; dark?: string; apiLight: s
   ChatGPT: { light: '/logos/openai-light.svg', dark: '/logos/openai-dark.svg', apiLight: 'https://api.svgl.app/svg/openai.svg', apiDark: 'https://api.svgl.app/svg/openai_dark.svg' },
 }
 
-function SourceBadge({ lead }: { lead: Lead }) {
-  const asset = channelAssets[lead.channel]
+function SourceLogo({ channel, theme }: { channel: Channel; theme: 'light' | 'dark' }) {
+  const asset = channelAssets[channel]
+  const localSource = theme === 'dark' && asset.dark ? asset.dark : asset.light
+  const apiSource = theme === 'dark' && asset.apiDark ? asset.apiDark : asset.apiLight
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => setFailed(false), [localSource])
+
+  return <span className="source-logo-frame" data-svgl-url={apiSource} aria-hidden="true">
+    {failed ? <span className="source-logo-fallback">{channel === 'ChatGPT' ? 'AI' : channel.slice(0, 1)}</span> : <img
+      className="source-logo"
+      src={localSource}
+      width="20"
+      height="20"
+      alt=""
+      decoding="async"
+      onError={() => setFailed(true)}
+    />}
+  </span>
+}
+
+function SourceBadge({ lead, theme }: { lead: Lead; theme: 'light' | 'dark' }) {
   return <span className="source-wrap">
     <span className="source-badge" data-slot="badge">
-      <img className="source-logo source-logo-light" src={asset.light} data-svgl-url={asset.apiLight} alt="" aria-hidden="true" />
-      {asset.dark && <img className="source-logo source-logo-dark" src={asset.dark} data-svgl-url={asset.apiDark} alt="" aria-hidden="true" />}
+      <SourceLogo channel={lead.channel} theme={theme} />
       <span>{lead.channel}</span>
     </span>
     <span className="campaign">{lead.campaign}</span>
@@ -133,6 +152,7 @@ function App() {
   const latestReceived = Math.max(...leads.map((lead) => +new Date(lead.received)))
   const recentCount = leads.filter((lead) => latestReceived - +new Date(lead.received) < 7 * 24 * 60 * 60 * 1000).length
   const topSource = Object.entries(leads.reduce<Record<string, number>>((counts, lead) => ({ ...counts, [lead.channel]: (counts[lead.channel] ?? 0) + 1 }), {})).sort((a, b) => b[1] - a[1])[0][0]
+  const sourceCounts = leads.reduce<Record<Channel, number>>((counts, lead) => ({ ...counts, [lead.channel]: counts[lead.channel] + 1 }), { Google: 0, Instagram: 0, TikTok: 0, ChatGPT: 0 })
 
   return (
     <div className="app-shell">
@@ -164,6 +184,23 @@ function App() {
           <div className="sample-status"><span className="status-dot" /> Sample data</div>
         </section>
 
+        <section className="source-overview" aria-label="Lead source attribution">
+          <div className="source-overview-title"><span>Attribution</span><strong>Lead sources</strong></div>
+          <div className="source-overview-list">
+            {(Object.keys(channelAssets) as Channel[]).map((channel) => <button
+              className="source-filter"
+              data-active={source === channel}
+              key={channel}
+              type="button"
+              aria-pressed={source === channel}
+              onClick={() => setSource((value) => value === channel ? 'All sources' : channel)}
+            >
+              <SourceLogo channel={channel} theme={theme} />
+              <span><strong>{channel}</strong><small>{sourceCounts[channel]} leads</small></span>
+            </button>)}
+          </div>
+        </section>
+
         <Card className="leads-card">
           <div className="table-heading">
             <div><h2>All leads</h2><p>{filtered.length} shown</p></div>
@@ -183,7 +220,7 @@ function App() {
                   return <tr key={lead.id}>
                     <td><button className="lead-link" aria-haspopup="dialog" onClick={() => openLead(lead)}><span>{lead.name}</span><small>View details</small></button></td>
                     <td><div className="contact-cell"><span><Mail />{lead.email}</span><span><Phone />{lead.phone}</span></div></td>
-                    <td><SourceBadge lead={lead} /></td>
+                    <td><SourceBadge lead={lead} theme={theme} /></td>
                     <td><p className="notes-cell">{lead.notes}</p></td>
                     <td><div className="received-cell"><strong>{received.date}</strong><span>{received.time} ET</span></div></td>
                   </tr>
@@ -193,7 +230,7 @@ function App() {
             <div className="mobile-cards">{filtered.map((lead) => {
               const received = formatReceived(lead.received)
               return <button className="lead-card" key={lead.id} aria-haspopup="dialog" onClick={() => openLead(lead)}>
-                <span className="lead-card-top"><strong>{lead.name}</strong><SourceBadge lead={lead} /></span>
+                <span className="lead-card-top"><strong>{lead.name}</strong><SourceBadge lead={lead} theme={theme} /></span>
                 <span className="lead-card-note">{lead.notes}</span>
                 <span className="lead-card-meta"><span><Mail />{lead.email}</span><span><Phone />{lead.phone}</span><span><Clock3 />{received.date}, {received.time}</span></span>
               </button>
@@ -207,7 +244,7 @@ function App() {
         <button className="scrim" aria-label="Close lead details" onClick={closeLead} />
         <aside ref={dialogRef} className="detail-sheet" role="dialog" aria-modal="true" aria-labelledby="lead-detail-title" aria-describedby="lead-detail-notes">
           <div className="sheet-header"><div><span className="sheet-kicker">Lead details</span><h2 id="lead-detail-title">{selected.name}</h2></div><IconButton label="Close lead details" onClick={closeLead}><X /></IconButton></div>
-          <SourceBadge lead={selected} />
+          <SourceBadge lead={selected} theme={theme} />
           <div className="detail-list">
             <div><span className="detail-icon"><Mail /></span><div><span>Email</span><a href={`mailto:${selected.email}`}>{selected.email}</a></div></div>
             <div><span className="detail-icon"><Phone /></span><div><span>Phone</span><a href={`tel:${selected.phone}`}>{selected.phone}</a></div></div>
