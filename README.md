@@ -16,6 +16,7 @@ The interface follows shadcn/ui's source-owned component approach and design lan
 - Search, source filtering, and sorting
 - Responsive desktop table and mobile cards
 - Keyboard-accessible lead detail drawer
+- Shared-password preview gate with session-only access and manual locking
 - Persistent light and dark themes
 - SVGL source marks for Google, Instagram, TikTok, and ChatGPT/OpenAI
 - Interactive source overview with one-click attribution filtering
@@ -48,6 +49,12 @@ npm run build
 This prototype uses sample data only. It is not connected to the practice website, ad platforms, CRM, or patient records.
 
 Before live lead ingestion is added, the production implementation should include authenticated access, server-side validation, an approved system of record, audit logging, retention rules, and a review of how notes and contact details are handled. Do not place lead details in analytics events, URLs, browser logs, or public exports.
+
+## Preview access gate
+
+The current shared-password screen is intentionally basic and entirely client-side. Successful access is stored only as a flag in `sessionStorage`, and the top-bar lock control clears that flag. The password and fictional dashboard data remain recoverable from the public JavaScript bundle and repository, so this gate is only a convenience barrier for the prototype. It is not authentication and must not protect real lead or patient information.
+
+The page also requests `noindex`, `nofollow`, and `noarchive`; search engines may choose how they honor those directives.
 
 ## SVGL attribution assets
 

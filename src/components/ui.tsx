@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
 
 export function Button({ className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
@@ -8,9 +9,9 @@ export function IconButton({ label, children, className = '', ...props }: Button
   return <button data-slot="button" className={`icon-button ${className}`} aria-label={label} title={label} {...props}>{children}</button>
 }
 
-export function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return <input data-slot="input" className={`input ${className}`} {...props} />
-}
+export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className = '', ...props }, ref) {
+  return <input ref={ref} data-slot="input" className={`input ${className}`} {...props} />
+})
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <section data-slot="card" className={`card ${className}`}>{children}</section>

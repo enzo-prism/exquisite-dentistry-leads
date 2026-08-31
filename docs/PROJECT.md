@@ -9,6 +9,7 @@ This repository is a front-end prototype for an Exquisite Dentistry website lead
 - Displays 12 fictional sample leads.
 - Includes name, email, phone, attributed source, campaign, notes, and received timestamp.
 - Supports search, source filtering, sorting, and an accessible lead-detail sheet.
+- Uses a basic shared-password gate with session-only access and a manual lock action.
 - Supports persistent light and dark themes.
 - Uses supplied Exquisite Dentistry wordmark and icon assets.
 - Uses locally cached, optimized SVGL marks for Google, Instagram, TikTok, and OpenAI.
@@ -16,7 +17,7 @@ This repository is a front-end prototype for an Exquisite Dentistry website lead
 
 ## Architecture
 
-- `src/App.tsx`: sample data, filtering, theme state, source attribution assets, source overview, and the lead-detail experience.
+- `src/App.tsx`: preview access gate, sample data, filtering, theme state, source attribution assets, source overview, and the lead-detail experience.
 - `src/components/ui.tsx`: local source-owned UI primitives following shadcn/ui composition conventions.
 - `src/styles.css`: design tokens, branded themes, responsive table/card layouts, and accessibility states.
 - `public/brand`: supplied Exquisite Dentistry PNG assets.
@@ -28,6 +29,12 @@ This repository is a front-end prototype for an Exquisite Dentistry website lead
 All identities, phone numbers, emails, notes, dates, campaigns, and metrics are fictional sample data. The app does not currently receive website forms, ad-platform events, CRM records, or patient information.
 
 Do not treat the sample source labels as evidence of active campaigns. Live attribution will require an agreed field model and trusted server-side capture of values such as UTM parameters, referring page, form identifier, and platform click IDs.
+
+## Access boundary
+
+The current password check runs in the browser. It keeps the dashboard out of the rendered page until the visitor enters the shared password and stores only an access flag for the current browser session. It does not protect the JavaScript bundle, static assets, or embedded sample data from inspection.
+
+This is appropriate only for the fictional prototype. Before any live lead information is connected, replace it with server-side authentication and authorization, ensure protected data is returned only after authorization, and remove the hard-coded client password.
 
 ## Production hardening before live data
 
@@ -50,6 +57,8 @@ npm run preview
 The production build includes TypeScript validation followed by the Vite bundle.
 
 Source-logo verification should confirm more than a successful HTTP response: each image must have a non-zero intrinsic size and a visible rendered mark in both themes. The component selects one theme-resolved SVG, and its text fallback prevents an undecodable asset from becoming an unexplained empty slot.
+
+Access-gate verification should cover a fresh locked session, an accessible error for a wrong password, successful unlock with the configured password, persistence through a same-session reload, manual locking, and a new session returning to the locked state.
 
 ## Deployment
 

@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ChevronDown,
   Clock3,
+  LockKeyhole,
   Mail,
   Moon,
   Phone,
@@ -16,6 +17,9 @@ import {
 import { Button, Card, IconButton, Input } from './components/ui'
 
 type Channel = 'Google' | 'Instagram' | 'TikTok' | 'ChatGPT'
+const ACCESS_PASSWORD = 'michael'
+const ACCESS_SESSION_KEY = 'exquisite-leads-access'
+
 type Lead = {
   id: number
   name: string
@@ -88,11 +92,58 @@ const formatReceived = (value: string) => {
   }
 }
 
+function AccessGate({ theme, onToggleTheme, onUnlock }: { theme: 'light' | 'dark'; onToggleTheme: () => void; onUnlock: () => void }) {
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => inputRef.current?.focus(), [])
+
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (password.trim() === ACCESS_PASSWORD) {
+      onUnlock()
+      return
+    }
+    setError('That password is not correct.')
+    setPassword('')
+    window.requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
+  return <main className="access-shell">
+    <IconButton className="access-theme" label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={onToggleTheme}>
+      {theme === 'light' ? <Moon /> : <Sun />}
+    </IconButton>
+    <section className="access-panel" aria-labelledby="access-title">
+      <div className="access-brand">
+        <img src="/brand/exquisite-wordmark.png" alt="Exquisite Dentistry" />
+        <span>Lead dashboard</span>
+      </div>
+      <div className="access-mark" aria-hidden="true"><img src="/brand/exquisite-icon.png" alt="" /></div>
+      <div className="access-copy">
+        <span className="section-label">Private preview</span>
+        <h1 id="access-title">Welcome back.</h1>
+        <p>Enter the shared password to view incoming leads.</p>
+      </div>
+      <form className="access-form" onSubmit={submit}>
+        <label htmlFor="access-password">Password</label>
+        <div className="access-input-wrap"><LockKeyhole /><Input ref={inputRef} id="access-password" type="password" value={password} onChange={(event) => { setPassword(event.target.value); if (error) setError('') }} autoComplete="current-password" aria-invalid={Boolean(error)} aria-describedby={error ? 'access-error' : undefined} placeholder="Enter password" /></div>
+        {error && <p className="access-error" id="access-error" role="alert">{error}</p>}
+        <Button type="submit">Open dashboard</Button>
+      </form>
+      <p className="access-footnote">Authorized access only · Prototype workspace</p>
+    </section>
+  </main>
+}
+
 function App() {
   const [query, setQuery] = useState('')
   const [source, setSource] = useState('All sources')
   const [sort, setSort] = useState('Newest first')
   const [selected, setSelected] = useState<Lead | null>(null)
+  const [hasAccess, setHasAccess] = useState(() => {
+    try { return window.sessionStorage.getItem(ACCESS_SESSION_KEY) === 'granted' } catch { return false }
+  })
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const saved = localStorage.getItem('exquisite-theme')
     if (saved === 'light' || saved === 'dark') return saved
@@ -154,6 +205,19 @@ function App() {
   const topSource = Object.entries(leads.reduce<Record<string, number>>((counts, lead) => ({ ...counts, [lead.channel]: (counts[lead.channel] ?? 0) + 1 }), {})).sort((a, b) => b[1] - a[1])[0][0]
   const sourceCounts = leads.reduce<Record<Channel, number>>((counts, lead) => ({ ...counts, [lead.channel]: counts[lead.channel] + 1 }), { Google: 0, Instagram: 0, TikTok: 0, ChatGPT: 0 })
 
+  const toggleTheme = () => setTheme((value) => value === 'light' ? 'dark' : 'light')
+  const unlock = () => {
+    try { window.sessionStorage.setItem(ACCESS_SESSION_KEY, 'granted') } catch { /* Continue for browsers that block storage. */ }
+    setHasAccess(true)
+  }
+  const lock = () => {
+    try { window.sessionStorage.removeItem(ACCESS_SESSION_KEY) } catch { /* The in-memory state still locks. */ }
+    setSelected(null)
+    setHasAccess(false)
+  }
+
+  if (!hasAccess) return <AccessGate theme={theme} onToggleTheme={toggleTheme} onUnlock={unlock} />
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -164,9 +228,10 @@ function App() {
           <span className="brand-product">Leads</span>
         </a>
         <div className="top-actions">
-          <IconButton className="topbar-theme" label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={() => setTheme((value) => value === 'light' ? 'dark' : 'light')}>
+          <IconButton className="topbar-theme" label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={toggleTheme}>
             {theme === 'light' ? <Moon /> : <Sun />}
           </IconButton>
+          <IconButton className="topbar-lock" label="Lock dashboard" onClick={lock}><LockKeyhole /></IconButton>
           <div className="profile"><div className="profile-copy"><strong>Practice Admin</strong><span>Demo workspace</span></div><div className="avatar"><UserRound /></div></div>
         </div>
       </header>
