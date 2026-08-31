@@ -42,19 +42,19 @@ const leads: Lead[] = [
   { id: 12, name: 'Grace Kim', email: 'grace.kim@example.com', phone: '(857) 555-0122', channel: 'TikTok', campaign: 'Ultra Glow-Up', notes: 'Interested in facial aesthetics and available packages.', received: '2026-08-22T17:20:00-04:00' },
 ]
 
-const channelAssets: Record<Channel, { light: string; dark?: string }> = {
-  Google: { light: '/logos/google.svg' },
-  Instagram: { light: '/logos/instagram.svg' },
-  TikTok: { light: '/logos/tiktok-light.svg', dark: '/logos/tiktok-dark.svg' },
-  ChatGPT: { light: '/logos/openai-light.svg', dark: '/logos/openai-dark.svg' },
+const channelAssets: Record<Channel, { light: string; dark?: string; apiLight: string; apiDark?: string }> = {
+  Google: { light: '/logos/google.svg', apiLight: 'https://api.svgl.app/svg/google.svg' },
+  Instagram: { light: '/logos/instagram.svg', apiLight: 'https://api.svgl.app/svg/instagram-icon.svg' },
+  TikTok: { light: '/logos/tiktok-light.svg', dark: '/logos/tiktok-dark.svg', apiLight: 'https://api.svgl.app/svg/tiktok-icon-light.svg', apiDark: 'https://api.svgl.app/svg/tiktok-icon-dark.svg' },
+  ChatGPT: { light: '/logos/openai-light.svg', dark: '/logos/openai-dark.svg', apiLight: 'https://api.svgl.app/svg/openai.svg', apiDark: 'https://api.svgl.app/svg/openai_dark.svg' },
 }
 
 function SourceBadge({ lead }: { lead: Lead }) {
   const asset = channelAssets[lead.channel]
   return <span className="source-wrap">
     <span className="source-badge" data-slot="badge">
-      <img className="source-logo source-logo-light" src={asset.light} alt="" aria-hidden="true" />
-      {asset.dark && <img className="source-logo source-logo-dark" src={asset.dark} alt="" aria-hidden="true" />}
+      <img className="source-logo source-logo-light" src={asset.light} data-svgl-url={asset.apiLight} alt="" aria-hidden="true" />
+      {asset.dark && <img className="source-logo source-logo-dark" src={asset.dark} data-svgl-url={asset.apiDark} alt="" aria-hidden="true" />}
       <span>{lead.channel}</span>
     </span>
     <span className="campaign">{lead.campaign}</span>

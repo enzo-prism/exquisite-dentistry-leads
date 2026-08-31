@@ -29,3 +29,7 @@ npm run build
 ```
 
 This prototype uses sample data only. It is not connected to the practice website, ad platforms, CRM, or patient records.
+
+## SVGL attribution assets
+
+The Google, Instagram, TikTok, and OpenAI marks used in lead-source tags are cached local copies of the optimized SVG responses from the [official SVGL API](https://svgl.app/docs/api). The exact `api.svgl.app/svg/...` source URL is preserved as `data-svgl-url` on each rendered logo.
