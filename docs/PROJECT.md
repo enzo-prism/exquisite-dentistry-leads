@@ -50,6 +50,10 @@ The production build includes TypeScript validation followed by the Vite bundle.
 
 ## Deployment
 
-The project is configured for Vercel. Production and repository links are recorded in the root README after release verification.
+The project is configured for Vercel and connected to the GitHub `main` branch.
+
+- Production: https://exquisite-dentistry-leads.vercel.app
+- Repository: https://github.com/enzo-prism/exquisite-dentistry-leads
+- Vercel project: `enzo-design-prisms-projects/exquisite-dentistry-leads`
 
 Recommended Vercel settings are Node.js 20 or newer, `npm run build`, and output directory `dist`.

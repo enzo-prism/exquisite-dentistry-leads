@@ -4,6 +4,9 @@ A clean, responsive lead-management dashboard concept for Exquisite Dentistry. I
 
 **Status:** front-end prototype using fictional sample records. No live lead ingestion is enabled.
 
+- [Production dashboard](https://exquisite-dentistry-leads.vercel.app)
+- [GitHub repository](https://github.com/enzo-prism/exquisite-dentistry-leads)
+
 The interface follows shadcn/ui's source-owned component approach and design language, with project-local Button, Card, Badge, Input, and table compositions customized to the practice brand.
 
 ## Included
