@@ -30,3 +30,5 @@ export const SlidersHorizontal = makeIcon([['path',{d:'M21 4H14M10 4H3M21 12h-9M
 export const ArrowDownUp = makeIcon([['path',{d:'m3 16 4 4 4-4M7 20V4M21 8l-4-4-4 4M17 4v16'}]])
 export const CalendarDays = makeIcon([['rect',{x:3,y:4,width:18,height:17,rx:2}],['path',{d:'M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01'}]])
 export const Clock3 = makeIcon([['circle',{cx:12,cy:12,r:9}],['path',{d:'M12 7v5l-3 2'}]])
+export const Moon = makeIcon([['path',{d:'M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z'}]])
+export const Sun = makeIcon([['circle',{cx:12,cy:12,r:4}],['path',{d:'M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41'}]])

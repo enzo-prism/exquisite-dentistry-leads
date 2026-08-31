@@ -11,7 +11,9 @@ The interface follows shadcn/ui's source-owned component approach and design lan
 - Search, source filtering, and sorting
 - Responsive desktop table and mobile cards
 - Keyboard-accessible lead detail drawer
-- Exquisite Dentistry-inspired forest, bronze, and gold visual system
+- Persistent light and dark themes
+- SVGL source marks for Google, Instagram, TikTok, and ChatGPT/OpenAI
+- Minimal modern-art visual system with restrained Exquisite Dentistry green
 
 ## Local development
 
