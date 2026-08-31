@@ -56,4 +56,4 @@ The project is configured for Vercel and connected to the GitHub `main` branch.
 - Repository: https://github.com/enzo-prism/exquisite-dentistry-leads
 - Vercel project: `enzo-design-prisms-projects/exquisite-dentistry-leads`
 
-Recommended Vercel settings are Node.js 20 or newer, `npm run build`, and output directory `dist`.
+Recommended Vercel settings are Node.js 24, `npm run build`, and output directory `dist`.

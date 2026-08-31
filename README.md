@@ -40,7 +40,7 @@ npm run build
 - Project-local components using shadcn/ui's source-owned design language; shadcn is not installed as a runtime package
 - Responsive light and dark themes saved in browser storage
 - Static Vercel deployment with SPA routing
-- Node.js 20 or newer
+- Node.js 24
 
 ## Data and privacy boundary
 
