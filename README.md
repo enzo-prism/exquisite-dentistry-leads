@@ -2,6 +2,8 @@
 
 A clean, responsive lead-management dashboard concept for Exquisite Dentistry. It presents incoming website inquiries in a searchable, filterable table with a mobile-friendly card view and lead detail panel.
 
+**Status:** front-end prototype using fictional sample records. No live lead ingestion is enabled.
+
 The interface follows shadcn/ui's source-owned component approach and design language, with project-local Button, Card, Badge, Input, and table compositions customized to the practice brand.
 
 ## Included
@@ -19,7 +21,7 @@ The interface follows shadcn/ui's source-owned component approach and design lan
 ## Local development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
@@ -29,8 +31,30 @@ npm run dev
 npm run build
 ```
 
+## Technology
+
+- React 19, TypeScript, and Vite
+- Project-local components using shadcn/ui's source-owned design language; shadcn is not installed as a runtime package
+- Responsive light and dark themes saved in browser storage
+- Static Vercel deployment with SPA routing
+- Node.js 20 or newer
+
+## Data and privacy boundary
+
 This prototype uses sample data only. It is not connected to the practice website, ad platforms, CRM, or patient records.
+
+Before live lead ingestion is added, the production implementation should include authenticated access, server-side validation, an approved system of record, audit logging, retention rules, and a review of how notes and contact details are handled. Do not place lead details in analytics events, URLs, browser logs, or public exports.
 
 ## SVGL attribution assets
 
 The Google, Instagram, TikTok, and OpenAI marks used in lead-source tags are cached local copies of the optimized SVG responses from the [official SVGL API](https://svgl.app/docs/api). The exact `api.svgl.app/svg/...` source URL is preserved as `data-svgl-url` on each rendered logo.
+
+The “ChatGPT” source label uses SVGL's OpenAI mark because SVGL does not currently provide a separate ChatGPT record. Third-party trademarks remain the property of their respective owners; source badges indicate attribution only and do not imply endorsement.
+
+## Brand and repository use
+
+The Exquisite Dentistry wordmark and icon were supplied for this dashboard prototype. No open-source license is granted for the repository or its brand assets. Do not reuse or redistribute the practice branding without authorization.
+
+## Project documentation
+
+See [docs/PROJECT.md](docs/PROJECT.md) for product scope, architecture, brand assets, deployment notes, and the path from this prototype to a live lead dashboard.
