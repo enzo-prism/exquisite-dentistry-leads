@@ -138,11 +138,13 @@ function App() {
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="#leads" aria-label="Exquisite Dentistry leads">
-          <span className="brand-mark"><span /></span>
-          <span className="brand-copy"><strong>Exquisite Dentistry</strong><small>Leads</small></span>
+          <img className="brand-wordmark" src="/brand/exquisite-wordmark.png" alt="" aria-hidden="true" />
+          <img className="brand-icon-mobile" src="/brand/exquisite-icon.png" alt="" aria-hidden="true" />
+          <span className="brand-divider" aria-hidden="true" />
+          <span className="brand-product">Leads</span>
         </a>
         <div className="top-actions">
-          <IconButton label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={() => setTheme((value) => value === 'light' ? 'dark' : 'light')}>
+          <IconButton className="topbar-theme" label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={() => setTheme((value) => value === 'light' ? 'dark' : 'light')}>
             {theme === 'light' ? <Moon /> : <Sun />}
           </IconButton>
           <div className="profile"><div className="profile-copy"><strong>Practice Admin</strong><span>Demo workspace</span></div><div className="avatar"><UserRound /></div></div>
@@ -152,7 +154,7 @@ function App() {
       <main className="content" id="leads">
         <section className="page-heading">
           <div className="heading-copy"><span className="section-label">Lead dashboard</span><h1>Website leads</h1><p>Incoming inquiries, without the noise.</p></div>
-          <div className="art-mark" aria-hidden="true"><span /><span /><span /></div>
+          <div className="brand-emblem" aria-hidden="true"><span className="emblem-index">01</span><img src="/brand/exquisite-icon.png" alt="" /></div>
         </section>
 
         <section className="summary" aria-label="Lead summary">

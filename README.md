@@ -14,6 +14,7 @@ The interface follows shadcn/ui's source-owned component approach and design lan
 - Persistent light and dark themes
 - SVGL source marks for Google, Instagram, TikTok, and ChatGPT/OpenAI
 - Minimal modern-art visual system with restrained Exquisite Dentistry green
+- Responsive Exquisite Dentistry wordmark and icon treatments from supplied brand assets
 
 ## Local development
 
