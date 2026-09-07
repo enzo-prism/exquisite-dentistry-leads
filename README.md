@@ -1,73 +1,57 @@
 # Exquisite Dentistry Lead Dashboard
 
-A clean, responsive lead-management dashboard concept for Exquisite Dentistry. It presents incoming website inquiries in a searchable, filterable table with a mobile-friendly card view and lead detail panel.
+Private dashboard for Formspree inbox `xkgknpkl`. The frontend contains no submission records or access password. An authenticated server endpoint reads the complete non-spam inbox directly from Formspree. No database copy or public snapshot is created.
 
-**Status:** front-end prototype using fictional sample records. No live lead ingestion is enabled.
+## Production target
 
-- [Production dashboard](https://exquisite-dentistry-leads.vercel.app)
-- [GitHub repository](https://github.com/enzo-prism/exquisite-dentistry-leads)
+Deploy to the existing exquisite-dentistry-leads Vercel project. Verify authenticated inbox reconciliation and unauthenticated access denial after every release; a successful build alone does not establish live integration health.
 
-The interface follows shadcn/ui's source-owned component approach and design language, with project-local Button, Card, Badge, Input, and table compositions customized to the practice brand.
+## Behavior
 
-## Included
+- Server-validated shared-password sign-in; four-hour signed HttpOnly, Secure, SameSite=Strict cookie.
+- Formspree data fetched only after authentication; responses are non-cacheable.
+- All inbox submissions shown by default, with explicit marked-test count/filter and person-type filter.
+- Missing attribution stays Unknown. Submissions are not assumed to be qualified leads or booked patients.
+- Received timestamps use Pacific time; the seven-day metric uses the current time.
+- Loading, refresh, failure and last-successful-refresh states. Incomplete provider reads fail rather than appearing as a partial inbox.
+- Private state stays in memory and is cleared on lock or expired authentication. No contact data in URLs, browser storage, analytics or logs.
+- Formspree spam and separate Simplifeye bookings are excluded.
 
-- 12 clearly fictional sample leads
-- Name, email, phone, source, notes, and received date/time
-- Search, source filtering, and sorting
-- Responsive desktop table and mobile cards
-- Keyboard-accessible lead detail drawer
-- Shared-password preview gate with session-only access and manual locking
-- Persistent light and dark themes
-- SVGL source marks for Google, Instagram, TikTok, and ChatGPT/OpenAI
-- Interactive source overview with one-click attribution filtering
-- Minimal modern-art visual system with restrained Exquisite Dentistry green
-- Responsive Exquisite Dentistry wordmark and icon treatments from supplied brand assets
+## Server-only configuration
 
-## Local development
+Set these in Vercel production environment variables, never VITE_* or checked-in files:
+
+| Variable | Purpose |
+| --- | --- |
+| FORMSPREE_READ_KEY | Existing read-only API key for form xkgknpkl; never use its master key. |
+| DASHBOARD_PASSWORD | New private password, at least 16 characters. Do not reuse the publicly embedded prototype password. |
+| SESSION_SECRET | Random signing secret, at least 32 characters. Rotate to revoke all sessions. |
+
+Obtain explicit approval before configuring external credentials or publishing. Production fails closed when configuration is absent. Configuring production variables does not authorize preview environments to access real submissions.
+
+## Verification
+
+Use Node.js 24 in Vercel. This change was also built/tested on the local Node.js 22.23.1 runtime.
 
 ```bash
 npm ci
-npm run dev
-```
-
-## Production build
-
-```bash
+npm test
 npm run build
+npm audit
+npm run start:local -- --synthetic
 ```
 
-## Technology
+The last command binds localhost:4317 and uses clearly synthetic in-memory data only. Its synthetic password is `synthetic-local-check-only`. The harness cannot be used as a production data source. With approved credentials, `.env.local` is ignored and `npm run start:local` uses the provider. Production functions never read a local fixture or export.
 
-- React 19, TypeScript, and Vite
-- Project-local components using shadcn/ui's source-owned design language; shadcn is not installed as a runtime package
-- Responsive light and dark themes saved in browser storage
-- Static Vercel deployment with SPA routing
-- Node.js 24
+Before publication, verify the current project identity, configure only production server variables, and run the checks above. After approved deployment, verify unauthenticated /api/leads returns401, cross-origin login fails, authenticated inbox count reconciles with Formspree, explicit test/source/persona breakdowns match, and logout denies further reads. Never expose actual submissions in screenshots or logs.
 
-## Data and privacy boundary
+## Limits
 
-This prototype uses sample data only. It is not connected to the practice website, ad platforms, CRM, or patient records.
+This provides a shared practice login, not individual staff accounts, roles or audit trails. Login throttling is best-effort per server instance; use platform/distributed protection for sustained abuse. Logging out clears the current browser cookie; copied stateless tokens remain valid until expiry or SESSION_SECRET rotation. Password rotation alone does not revoke existing sessions. Marked-test filtering only uses an explicit provider marker; it does not silently classify or delete other records. No messages, scheduling changes or Formspree mutations are performed.
 
-Before live lead ingestion is added, the production implementation should include authenticated access, server-side validation, an approved system of record, audit logging, retention rules, and a review of how notes and contact details are handled. Do not place lead details in analytics events, URLs, browser logs, or public exports.
+## Sources
 
-## Preview access gate
-
-The current shared-password screen is intentionally basic and entirely client-side. Successful access is stored only as a flag in `sessionStorage`, and the top-bar lock control clears that flag. The password and fictional dashboard data remain recoverable from the public JavaScript bundle and repository, so this gate is only a convenience barrier for the prototype. It is not authentication and must not protect real lead or patient information.
-
-The page also requests `noindex`, `nofollow`, and `noarchive`; search engines may choose how they honor those directives.
-
-## SVGL attribution assets
-
-The Google, Instagram, TikTok, and OpenAI marks used in lead-source tags are cached local copies of the optimized SVG responses from the [official SVGL API](https://svgl.app/docs/api). Each cached SVG is normalized with the standard SVG XML namespace so it renders reliably as a standalone image. The exact `api.svgl.app/svg/...` source URL is preserved as `data-svgl-url` on each logo frame.
-
-The interface renders a single light- or dark-theme asset at a time, avoiding selector-dependent image swapping. If a local asset cannot be decoded, the frame shows a compact text fallback instead of silently leaving an empty space.
-
-The “ChatGPT” source label uses SVGL's OpenAI mark because SVGL does not currently provide a separate ChatGPT record. Third-party trademarks remain the property of their respective owners; source badges indicate attribution only and do not imply endorsement.
-
-## Brand and repository use
-
-The Exquisite Dentistry wordmark and icon were supplied for this dashboard prototype. No open-source license is granted for the repository or its brand assets. Do not reuse or redistribute the practice branding without authorization.
-
-## Project documentation
-
-See [docs/PROJECT.md](docs/PROJECT.md) for product scope, architecture, brand assets, deployment notes, and the path from this prototype to a live lead dashboard.
+- Dashboard: https://exquisite-dentistry-leads.vercel.app/
+- Repository: https://github.com/enzo-prism/exquisite-dentistry-leads
+- Formspree submissions API: https://help.formspree.io/articles/the-forms-api/form-submissions-api
+- Authentication: https://help.formspree.io/articles/the-forms-api/api-authentication

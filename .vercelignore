@@ -1,0 +1,7 @@
+.git
+.env*
+work/
+outputs/
+node_modules/
+scripts/
+tests/
