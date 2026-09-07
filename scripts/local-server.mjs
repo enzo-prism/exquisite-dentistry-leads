@@ -15,7 +15,7 @@ if (process.argv.includes('--synthetic')) {
     if (String(url).startsWith('https://formspree.io/api/0/forms/xkgknpkl/submissions')) {
       const old = new Date(Date.now() - 40 * 86400000).toISOString()
       return new Response(JSON.stringify({ submissions: [
-        { _id:'synthetic-1',_date:new Date().toISOString(),name:'Synthetic verification',email:'synthetic@example.com',message:'Synthetic data only',form_key:'contact',whichBestDescribesYou:'new_patient' },
+        { _id:'synthetic-1',_date:new Date().toISOString(),name:'Synthetic verification',email:'synthetic@example.com',message:'Synthetic data only.\n\n'+ 'A longer synthetic note for testing the full submission view. '.repeat(60) + '\nFINAL MESSAGE LINE',notes:'Additional synthetic notes.\nKeep this separate paragraph visible.',form_key:'contact',whichBestDescribesYou:'new_patient' },
         { _id:'synthetic-2',_date:old,name:'Synthetic older record',utm_source:'google',message:'Older synthetic row' },
         { _id:'synthetic-3',_date:new Date().toISOString(),name:'Synthetic marked test',_codex_test:true,utm_source:'chatgpt',form_key:'chatgpt_ads_consultation' },
         { _id:'synthetic-4',name:'Synthetic undated record',utm_source:'constructor' }

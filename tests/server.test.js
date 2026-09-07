@@ -135,3 +135,12 @@ test('protected endpoint never returns leads without authentication and never ca
     }
   }
 })
+
+test('full notes retain distinct message fields, paragraphs and long content without duplicating aliases', () => {
+  const message = `First paragraph.\n\n${'Long synthetic note. '.repeat(500)}\nLast line.`
+  const notes = 'Additional details\nPlease call after 3pm.'
+  assert.equal(normalize({ message, notes, Message: message }).notes, `${message}\n\n${notes}`)
+  assert.equal(normalize({ message: ' ', notes: 'Only notes' }).notes, 'Only notes')
+  assert.equal(normalize({ message: '<script>text only</script>' }).notes, '<script>text only</script>')
+  assert.equal(normalize({}).notes, '')
+})

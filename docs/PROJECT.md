@@ -21,3 +21,11 @@ Do not change Formspree classifications, delete submissions, send notifications,
 ## September 7 read-only reconciliation
 
 Authenticated Formspree UI showed 30 inbox records and 22 spam. One inbox record was explicitly marked as a test. Person type: 13 prospective, 9 existing, 1 vendor, 7 unspecified. Source fallback (utm_source, source, lead_source): 2 ChatGPT, 28 Unknown. These reflect submitted metadata, not independent attribution or qualification. No real record values were committed.
+
+## Submission details interaction
+
+The desktop row is a pointer target with a native name button for keyboard access. Mobile cards include a View details label and a three-line notes preview. The native dialog prevents background interaction, preserves scroll while the same submission refreshes, and keeps its close control visible as long notes scroll. Full notes use pre-wrap and overflow wrapping with no text truncation. Empty notes have an explicit message.
+
+`normalize()` combines distinct nonempty message, notes and Message values in provider order, retaining their line breaks and avoiding repeated identical aliases. No extra provider fields or raw payloads are exposed. All data remains behind the existing authenticated, no-store API.
+
+Use the synthetic local server to check desktop row clicks, keyboard activation, mobile cards at 390px and 320px, long notes through their final line, additional notes, empty notes, refresh while open, Escape/close/backdrop dismissal, focus return, and lock clearing private content. The synthetic fixture includes a deliberately long multiline message and separate notes. Do not use real submission screenshots as test artifacts.

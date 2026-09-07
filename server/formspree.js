@@ -22,7 +22,7 @@ export function normalize(row) {
     name: first(row.name, row.full_name, row.fullName, row['Full Name'], [first(row.first_name, row.firstName), first(row.last_name, row.lastName)].filter(Boolean).join(' ')),
     email: first(row.email, row._replyto, row.Email),
     phone: first(row.phone, row.phone_number, row.tel, row.Phone),
-    notes: first(row.message, row.notes, row.Message),
+    notes: [...new Set([row.message, row.notes, row.Message].map(text).filter(value => value.trim()))].join('\n\n'),
     received: utc(first(row._date, row.created_at, row.createdAt)),
     channel: Object.hasOwn(known, sourceKey) ? known[sourceKey] : source,
     source,

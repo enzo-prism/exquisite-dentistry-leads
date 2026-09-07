@@ -184,7 +184,7 @@ function App() {
       setFetchedAt(data.meta?.fetchedAt || '')
       setLoaded(true)
       setHasAccess(true)
-      setSelected(null)
+      setSelected(current => current ? data.leads.find((lead: Lead) => lead.id === current.id) ?? null : null)
     } catch {
       if (version === requestVersion.current) {
         setError('Submissions are unavailable. Check the connection and retry.')
@@ -209,7 +209,7 @@ function App() {
     } catch { /* Theme preference is optional. */ }
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   })
-  const dialogRef = useRef<HTMLElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -219,8 +219,8 @@ function App() {
     try { localStorage.setItem('exquisite-theme', theme) } catch { /* Keep the in-memory preference. */ }
   }, [theme])
 
-  const openLead = (lead: Lead) => {
-    returnFocusRef.current = document.activeElement as HTMLElement | null
+  const openLead = (lead: Lead, trigger?: HTMLElement | null) => {
+    returnFocusRef.current = trigger ?? document.activeElement as HTMLElement | null
     setSelected(lead)
   }
 
@@ -229,24 +229,15 @@ function App() {
     window.requestAnimationFrame(() => returnFocusRef.current?.focus())
   }
 
+  const selectedId = selected?.id
   useEffect(() => {
-    if (!selected || !dialogRef.current) return
+    if (!selectedId || !dialogRef.current) return
     const dialog = dialogRef.current
-    const focusable = () => Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'))
-    focusable()[0]?.focus()
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeLead()
-      if (event.key !== 'Tab') return
-      const items = focusable()
-      if (!items.length) return
-      const first = items[0]
-      const last = items[items.length - 1]
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus() }
-      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus() }
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [selected])
+    dialog.showModal()
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { dialog.close(); document.body.style.overflow = previousOverflow }
+  }, [selectedId])
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -352,8 +343,10 @@ function App() {
                 <thead><tr><th>Submission</th><th>Contact</th><th>Source</th><th>Notes</th><th>Received</th></tr></thead>
                 <tbody>{filtered.map((lead) => {
                   const received = formatReceived(lead.received)
-                  return <tr key={lead.id}>
-                    <td><button className="lead-link" aria-haspopup="dialog" onClick={() => openLead(lead)}><span>{lead.name || 'Name not provided'}</span><small>{lead.isTest ? 'Test submission · ' : ''}{lead.personType ? personLabel(lead.personType) : lead.formType ? formLabel(lead.formType) : 'View details'}</small></button></td>
+                  return <tr key={lead.id} className="submission-row" onClick={(event) => {
+                    if (!window.getSelection()?.toString()) openLead(lead, event.currentTarget.querySelector('button'))
+                  }}>
+                    <td><button className="lead-link" aria-haspopup="dialog" onClick={(event) => { event.stopPropagation(); openLead(lead, event.currentTarget) }}><span>{lead.name || 'Name not provided'}</span><small>{lead.isTest ? 'Test submission · ' : ''}{lead.personType ? personLabel(lead.personType) : lead.formType ? formLabel(lead.formType) : 'Submission'}</small><span className="view-details">View details →</span></button></td>
                     <td><div className="contact-cell"><span><Mail />{lead.email || 'Email not provided'}</span><span><Phone />{lead.phone || 'Phone not provided'}</span></div></td>
                     <td><SourceBadge lead={lead} theme={theme} /></td>
                     <td><p className="notes-cell">{lead.notes || 'No message provided'}</p></td>
@@ -364,9 +357,9 @@ function App() {
             </div>
             <div className="mobile-cards">{filtered.map((lead) => {
               const received = formatReceived(lead.received)
-              return <button className="lead-card" key={lead.id} aria-haspopup="dialog" onClick={() => openLead(lead)}>
+              return <button className="lead-card" key={lead.id} aria-haspopup="dialog" onClick={(event) => openLead(lead, event.currentTarget)}>
                 <span className="lead-card-top"><strong>{lead.name || 'Name not provided'}</strong><SourceBadge lead={lead} theme={theme} /></span>
-                <span className="lead-card-note">{lead.notes || 'No message provided'}</span>
+                <span className="view-details">View details →</span><span className="lead-card-note">{lead.notes || 'No message provided'}</span>
                 <span className="lead-card-meta"><span><Mail />{lead.email || 'Email not provided'}</span><span><Phone />{lead.phone || 'Phone not provided'}</span><span><Clock3 />{received.date}, {received.time} PT</span></span>
               </button>
             })}</div>
@@ -375,21 +368,32 @@ function App() {
         <p className="privacy-note">Inbox records are raw submissions, not verified patients or qualified leads. Spam and Simplifeye bookings are excluded. Times shown in Pacific time.</p>
       </main>
 
-      {selected && <>
-        <button className="scrim" aria-label="Close lead details" onClick={closeLead} />
-        <aside ref={dialogRef} className="detail-sheet" role="dialog" aria-modal="true" aria-labelledby="lead-detail-title" aria-describedby="lead-detail-notes">
-          <div className="sheet-header"><div><span className="sheet-kicker">Lead details</span><h2 id="lead-detail-title">{selected.name || 'Name not provided'}</h2></div><IconButton label="Close lead details" onClick={closeLead}><X /></IconButton></div>
+      {selected && <dialog ref={dialogRef} className="detail-sheet" aria-labelledby="lead-detail-title"
+        onCancel={(event) => { event.preventDefault(); closeLead() }}
+        onKeyDown={(event) => {
+          if (event.key !== 'Tab') return
+          const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]), a[href]'))
+          const first = items[0], last = items[items.length - 1]
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+          if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+        }}
+        onClick={(event) => {
+          if (event.target !== event.currentTarget) return
+          const rect = event.currentTarget.getBoundingClientRect()
+          if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeLead()
+        }}>
+
+          <div className="sheet-header"><div><span className="sheet-kicker">Submission details</span><h2 id="lead-detail-title">{selected.name || 'Name not provided'}</h2></div><IconButton label="Close lead details" onClick={closeLead}><X /></IconButton></div>
           <SourceBadge lead={selected} theme={theme} />
           <div className="detail-list">
             <div><span className="detail-icon"><Mail /></span><div><span>Email</span><strong>{selected.email || 'Not provided'}</strong></div></div>
             <div><span className="detail-icon"><Phone /></span><div><span>Phone</span><strong>{selected.phone || 'Not provided'}</strong></div></div>
             <div><span className="detail-icon"><CalendarDays /></span><div><span>Received</span><strong>{formatReceived(selected.received).date} at {formatReceived(selected.received).time} PT</strong></div></div>
           </div>
+          <section className="notes-panel" aria-labelledby="notes-heading"><h3 id="notes-heading">Full notes</h3><p>{selected.notes || 'No message or notes were provided with this submission.'}</p></section>
           <div className="submission-context"><p>Interested in: {selected.interest || 'Not provided'}</p><p>Form: {formLabel(selected.formType)}</p><p>Person type: {personLabel(selected.personType)}</p><p>{selected.isTest ? 'Flagged as a test submission' : 'No test flag provided'}</p><p>Reported source: {selected.source || 'Not provided'}</p><p>Page: {selected.pageUrl || 'Not provided'}</p><p>Referrer: {selected.referrer || 'Not provided'}</p></div>
-          <div className="notes-panel"><span>Notes</span><p id="lead-detail-notes">{selected.notes}</p></div>
           <p className="sheet-footnote">Qualification and follow-up status have not been verified.</p>
-        </aside>
-      </>}
+        </dialog>}
     </div>
   )
 }

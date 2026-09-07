@@ -10,6 +10,9 @@ Deploy to the existing exquisite-dentistry-leads Vercel project. Verify authenti
 
 - Server-validated shared-password sign-in; four-hour signed HttpOnly, Secure, SameSite=Strict cookie.
 - Formspree data fetched only after authentication; responses are non-cacheable.
+- Click any desktop submission row or mobile card to open submission details; the name button also supports keyboard access.
+- Details show contact information, received time, complete notes with original paragraph breaks, and submitted context. Distinct message/notes fields are preserved; duplicate aliases are shown once.
+- The modal supports Escape, close button, backdrop dismissal, contained keyboard focus and background scroll locking. Successful refreshes keep the selected submission open and current; missing records, failed reads, lock and expired authentication clear it.
 - All inbox submissions shown by default, with explicit marked-test count/filter and person-type filter.
 - Missing attribution stays Unknown. Submissions are not assumed to be qualified leads or booked patients.
 - Received timestamps use Pacific time; the seven-day metric uses the current time.
