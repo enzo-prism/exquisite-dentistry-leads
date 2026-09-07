@@ -90,15 +90,10 @@ svg { width: 18px; height: 18px; stroke-width: 1.8; }
 .avatar svg { width: 15px; height: 15px; }
 
 .content { width: min(1440px, 100%); margin: 0 auto; padding: clamp(40px, 6vw, 86px) clamp(20px, 4vw, 64px) 36px; }
-.page-heading { position: relative; display: flex; align-items: flex-end; justify-content: space-between; min-height: 150px; padding-bottom: 34px; border-bottom: 1px solid var(--border); }
-.heading-copy { position: relative; z-index: 1; }
+.page-heading { padding: 8px 0 20px; border-bottom: 1px solid var(--border); }
+.page-heading h1 { font-size: clamp(28px, 4vw, 44px); letter-spacing: -.04em; line-height: 1; }
 .section-label { display: block; margin-bottom: 14px; color: var(--muted-foreground); font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
 h1 { margin: 0; font-size: clamp(42px, 7vw, 92px); font-weight: 500; letter-spacing: -.065em; line-height: .9; }
-.page-heading p { margin: 16px 0 0; color: var(--muted-foreground); font-size: 14px; }
-.brand-emblem { position: relative; display: grid; place-items: center; width: 132px; height: 132px; flex: none; overflow: hidden; border: 1px solid #9f8c69; background: #080d0b; }
-.brand-emblem::after { position: absolute; inset: 8px; border: 1px solid rgba(167,145,105,.22); content: ''; }
-.brand-emblem img { width: 86px; height: 86px; object-fit: contain; filter: saturate(.84) brightness(1.12); }
-.emblem-index { position: absolute; top: 9px; left: 11px; color: rgba(255,255,255,.48); font-size: 7px; letter-spacing: .18em; }
 
 .summary { display: flex; align-items: stretch; min-height: 96px; border-bottom: 1px solid var(--border); }
 .summary > div:not(.sample-status) { display: flex; min-width: 150px; align-items: baseline; gap: 9px; padding: 29px 30px 24px 0; margin-right: 30px; border-right: 1px solid var(--border); }
@@ -223,8 +218,6 @@ tbody tr:hover { background: color-mix(in srgb, var(--muted) 68%, transparent); 
   .topbar { padding-inline: 18px; }
   .profile-copy { display: none; }
   .content { padding: 40px 18px 28px; }
-  .page-heading { min-height: 126px; }
-  .brand-emblem { transform: scale(.78); transform-origin: right bottom; }
   .summary { display: grid; grid-template-columns: repeat(3, 1fr); min-height: 0; }
   .summary > div:not(.sample-status) { display: grid; gap: 3px; min-width: 0; padding: 20px 12px 18px 0; margin: 0; }
   .summary > div:nth-child(3) { border-right: 0; padding-left: 12px; }
@@ -262,8 +255,6 @@ tbody tr:hover { background: color-mix(in srgb, var(--muted) 68%, transparent); 
   .brand-wordmark, .brand-divider { display: none; }
   .brand-icon-mobile { display: block; }
   .brand-product { color: #d4c7b0; font-size: 10px; }
-  .page-heading { min-height: 150px; align-items: flex-start; }
-  .brand-emblem { position: absolute; right: 0; bottom: 18px; opacity: .76; }
   h1 { font-size: 50px; }
   .summary strong { font-size: 19px; }
   .summary span { font-size: 9px; }

@@ -29,3 +29,7 @@ The desktop row is a pointer target with a native name button for keyboard acces
 `normalize()` combines distinct nonempty message, notes and Message values in provider order, retaining their line breaks and avoiding repeated identical aliases. No extra provider fields or raw payloads are exposed. All data remains behind the existing authenticated, no-store API.
 
 Use the synthetic local server to check desktop row clicks, keyboard activation, mobile cards at 390px and 320px, long notes through their final line, additional notes, empty notes, refresh while open, Escape/close/backdrop dismissal, focus return, and lock clearing private content. The synthetic fixture includes a deliberately long multiline message and separate notes. Do not use real submission screenshots as test artifacts.
+
+## Dashboard heading
+
+The content heading is a single lowercase `h1` reading "leads" with a bottom rule. No section label, summary paragraph, or brand emblem. The previous "Lead dashboard / Website leads / Real Formspree inbox submissions…" block was removed; its styles were deleted from `src/styles.css`, including the responsive emblem overrides.

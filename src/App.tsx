@@ -294,8 +294,7 @@ function App() {
 
       <main className="content" id="leads">
         <section className="page-heading">
-          <div className="heading-copy"><span className="section-label">Lead dashboard</span><h1>Website leads</h1><p>Real Formspree inbox submissions. Qualification and booking outcomes are unverified.</p></div>
-          <div className="brand-emblem" aria-hidden="true"><span className="emblem-index">01</span><img src="/brand/exquisite-icon.png" alt="" /></div>
+          <h1>leads</h1>
         </section>
 
         <section className="summary" aria-label="Lead summary">
