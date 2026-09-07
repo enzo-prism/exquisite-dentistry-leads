@@ -5,7 +5,7 @@ const TTL = 60 * 60 * 4
 const attempts = new Map()
 
 export function config(env = process.env) {
-  if (!env.DASHBOARD_PASSWORD || env.DASHBOARD_PASSWORD.length < 16 || !env.SESSION_SECRET || env.SESSION_SECRET.length < 32) return null
+  if (!env.DASHBOARD_PASSWORD || env.DASHBOARD_PASSWORD.length < 8 || !env.SESSION_SECRET || env.SESSION_SECRET.length < 32) return null
   return { password: env.DASHBOARD_PASSWORD, secret: env.SESSION_SECRET }
 }
 export function equal(a, b) {

@@ -19,6 +19,9 @@ test('signed sessions reject tampering, expiry and wrong secret', () => {
 test('configuration fails closed and cookie has browser protection', () => {
   assert.equal(config({}), null)
   assert.equal(config({ DASHBOARD_PASSWORD: 'michael', SESSION_SECRET: secret }), null)
+  assert.deepEqual(config({ DASHBOARD_PASSWORD: '12345678', SESSION_SECRET: secret }), { password: '12345678', secret })
+  assert.deepEqual(config({ DASHBOARD_PASSWORD: 'exquisite', SESSION_SECRET: secret }), { password: 'exquisite', secret })
+  assert.equal(config({ DASHBOARD_PASSWORD: '12345678', SESSION_SECRET: 'too-short-session-secret' }), null)
   assert.match(sessionCookie('test'), /__Host-.*HttpOnly; Secure; SameSite=Strict/)
   assert.match(sessionCookie('', true), /Max-Age=0/)
   assert.equal(authenticated({ headers: { cookie: 'exquisite-leads-access=granted' } }, { secret }), false)
