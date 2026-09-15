@@ -99,3 +99,39 @@ test('HMAC rejects changed bytes, old signatures, malformed headers and oversize
   assert.equal(verifyFormspreeSignature(raw, 't=NaN,v1=abc', secret, now), false)
   assert.equal(verifyFormspreeSignature(Buffer.alloc(65537), signature(now/1000), secret, now), false)
 })
+
+test('credential probe is always validation-only, no Formspree read, matching identifiers or patient data', async () => {
+  const { validationConfig, probeConversionValidation } = await import('../server/openai-reconciliation.js')
+  const env = { OPENAI_CONVERSIONS_MODE: 'validate_only', OPENAI_CONVERSIONS_API_KEY: 'fixture', OPENAI_ADS_PIXEL_ID: cfg.pixelId, CRON_SECRET: 'fixture'.repeat(8) }
+  const probeCfg = validationConfig(env)
+  assert.ok(probeCfg); assert.equal(reconciliationConfig(env), null)
+  assert.equal(validationConfig({ ...env, OPENAI_CONVERSIONS_MODE: 'live' }), null)
+  let calls = 0
+  const result = await probeConversionValidation(probeCfg, { now, fetcher: async (url, init) => {
+    calls++; assert.match(url, /^https:\/\/bzr.openai.com\/v1\/events\?pid=/)
+    const payload = JSON.parse(init.body)
+    assert.equal(payload.validate_only, true)
+    assert.equal(payload.events.length, 1)
+    assert.equal(payload.events[0].oppref, undefined)
+    assert.equal(payload.events[0].user, undefined)
+    assert.match(payload.events[0].id, /^validation_probe_/)
+    assert.deepEqual(Object.keys(payload.events[0]).sort(), ['action_source','data','id','opt_out','source_url','timestamp_ms','type'])
+    return new Response('{}')
+  } })
+  assert.equal(calls, 1); assert.equal(result.conversionsSent, 0); assert.equal(result.probe, true)
+  await assert.rejects(probeConversionValidation(probeCfg, { fetcher: async () => new Response('', { status: 401 }) }), /validation_failed/)
+})
+
+test('POST probe requires secret even without Formspree config and rejects ordinary POST', async () => {
+  const env = { OPENAI_CONVERSIONS_MODE: 'validate_only', OPENAI_CONVERSIONS_API_KEY: 'fixture', OPENAI_ADS_PIXEL_ID: cfg.pixelId, CRON_SECRET: 'fixture'.repeat(8) }
+  const keys = [...Object.keys(env), 'FORMSPREE_READ_KEY']
+  const saved = Object.fromEntries(keys.map(key => [key, process.env[key]]))
+  Object.assign(process.env, env); delete process.env.FORMSPREE_READ_KEY
+  const res = { code: 0, setHeader() {}, status(code) { this.code=code; return this }, json(body) { this.body=body; return this } }
+  try {
+    await handler({ method: 'POST', url: '/api/reconcile-conversions?probe=true', headers: {} }, res)
+    assert.equal(res.code, 401)
+    await handler({ method: 'POST', url: '/api/reconcile-conversions', headers: {} }, res)
+    assert.equal(res.code, 405)
+  } finally { for (const [key,value] of Object.entries(saved)) { if (value === undefined) delete process.env[key]; else process.env[key]=value } }
+})

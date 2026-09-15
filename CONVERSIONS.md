@@ -26,6 +26,10 @@ Optional manual validation scanner:
 
 Never prefix secrets `VITE_`, log them, or commit them. Configure production and preview deliberately; do not activate live events in a preview.
 
+## Credential probe without a lead
+
+Authenticated `POST /api/reconcile-conversions?probe=true` validates one synthetic metadata-only event with OpenAI. It always sets `validate_only: true`, contains no `oppref` or user identifiers, and never saves a conversion. It needs `OPENAI_CONVERSIONS_MODE=validate_only`, the OpenAI key/pixel and `CRON_SECRET`; it does not need the Formspree read key. Pass the secret in the Authorization header, never in a URL. The request body is ignored and cannot override validation mode or event fields. A 200 response reports HTTP validation acceptance, not ingestion, attribution, or a genuine inquiry. Ordinary POSTs are rejected.
+
 ## Browser receipt contract
 
 All FormData values are strings:

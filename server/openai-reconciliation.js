@@ -1,11 +1,37 @@
+import { randomUUID } from 'node:crypto'
 import { fetchSubmissions, FORM_ID } from './formspree.js'
 import { prepareProviderSubmission } from './openai-conversion-validation.js'
 
-export function reconciliationConfig(env) {
-  if (env.OPENAI_CONVERSIONS_MODE !== 'validate_only' || !env.FORMSPREE_READ_KEY
+export function validationConfig(env) {
+  if (env.OPENAI_CONVERSIONS_MODE !== 'validate_only'
     || !env.OPENAI_CONVERSIONS_API_KEY || env.OPENAI_ADS_PIXEL_ID !== 'V7dxjf8kBAWERq3f9VG2wM'
     || !env.CRON_SECRET || env.CRON_SECRET.length < 32) return null
-  return { formspreeKey: env.FORMSPREE_READ_KEY, apiKey: env.OPENAI_CONVERSIONS_API_KEY, pixelId: env.OPENAI_ADS_PIXEL_ID, cronSecret: env.CRON_SECRET }
+  return { apiKey: env.OPENAI_CONVERSIONS_API_KEY, pixelId: env.OPENAI_ADS_PIXEL_ID, cronSecret: env.CRON_SECRET }
+}
+
+export function reconciliationConfig(env) {
+  const cfg = validationConfig(env)
+  return cfg && env.FORMSPREE_READ_KEY ? { ...cfg, formspreeKey: env.FORMSPREE_READ_KEY } : null
+}
+
+/** Credential/schema probe only. No attribution identifiers or patient data; never ingested. */
+export async function probeConversionValidation(cfg, { fetcher = fetch, now = Date.now() } = {}) {
+  const response = await fetcher(`https://bzr.openai.com/v1/events?pid=${encodeURIComponent(cfg.pixelId)}`, {
+    method: 'POST', redirect: 'error', signal: AbortSignal.timeout(15000),
+    headers: { Authorization: `Bearer ${cfg.apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      validate_only: true,
+      integration_source: 'exquisite_dentistry',
+      events: [{
+        id: `validation_probe_${randomUUID()}`, type: 'lead_created', timestamp_ms: now,
+        source_url: 'https://exquisitedentistryla.com/contact/', action_source: 'web',
+        opt_out: true, data: { type: 'customer_action' },
+      }],
+    }),
+  })
+  if (!response.ok) throw new Error('openai_validation_failed')
+  if (response.body?.cancel) await response.body.cancel()
+  return { mode: 'validate_only', probe: true, validationRequestsAccepted: 1, conversionsSent: 0 }
 }
 
 /** No live mode: repeat scans cannot create or duplicate campaign conversions. */
