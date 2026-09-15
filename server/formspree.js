@@ -36,7 +36,7 @@ export function normalize(row) {
   }
 }
 
-export async function fetchLeads(key, fetcher = fetch) {
+export async function fetchSubmissions(key, fetcher = fetch) {
   if (!key) throw new Error('integration_unconfigured')
   const leads = []
   const seen = new Set()
@@ -73,9 +73,14 @@ export async function fetchLeads(key, fetcher = fetch) {
       const lead = normalize(row)
       if (seen.has(lead.id)) throw new Error('pagination_changed')
       seen.add(lead.id)
-      leads.push(lead)
+      leads.push(row)
     }
-    if (payload.submissions.length < pageSize) return { leads, meta: { provider: 'Formspree', formId: FORM_ID, fetchedAt: new Date().toISOString(), total: leads.length, spamExcluded: true, complete: true } }
+    if (payload.submissions.length < pageSize) return { submissions: leads, meta: { provider: 'Formspree', formId: FORM_ID, fetchedAt: new Date().toISOString(), total: leads.length, spamExcluded: true, complete: true } }
   }
   throw new Error('pagination_limit')
+}
+
+export async function fetchLeads(key, fetcher = fetch) {
+  const { submissions, meta } = await fetchSubmissions(key, fetcher)
+  return { leads: submissions.map(normalize), meta }
 }
