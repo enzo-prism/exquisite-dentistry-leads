@@ -19,6 +19,7 @@ Deploy to the existing exquisite-dentistry-leads Vercel project. Verify authenti
 - Loading, refresh, failure and last-successful-refresh states. Incomplete provider reads fail rather than appearing as a partial inbox.
 - Private state stays in memory and is cleared on lock or expired authentication. No contact data in URLs, browser storage, analytics or logs.
 - Formspree spam and separate Simplifeye bookings are excluded.
+- A website-pathways section shows Cherry financing notices and consented Vercel Analytics counts for Cherry clicks, scheduling clicks, scheduler page views, and phone clicks. Approved Cherry dollars are a credit limit. Funded Cherry dollars are the purchase amount on an issued plan, not collected production. Completed Simplifeye bookings are not available.
 
 ## Server-only configuration
 
@@ -29,6 +30,11 @@ Set these in Vercel production environment variables, never VITE_* or checked-in
 | FORMSPREE_READ_KEY | Existing read-only API key for form xkgknpkl; never use its master key. |
 | DASHBOARD_PASSWORD | Shared practice password. Production value, set 21 Sep 2026: `exquisite`. Code rejects anything shorter than 8 characters. Practice-shared login, not staff accounts. |
 | SESSION_SECRET | Random signing secret, at least 32 characters. Rotate to revoke all sessions. |
+| GOOGLE_SERVICE_ACCOUNT_JSON | Service account JSON used only to read Cherry mail for enzo@design-prism.com. Never commit it. |
+| GOOGLE_IMPERSONATE | Mailbox to read. Production is `enzo@design-prism.com`. |
+| VERCEL_ANALYTICS_TOKEN | Token that can query Web Analytics for the public website project. |
+| VERCEL_ANALYTICS_TEAM_ID | Team that owns exquisitedentistryla.com. |
+| VERCEL_ANALYTICS_PROJECT_ID | Vercel project id for `exquisite-dentistry`, not this dashboard. |
 
 Obtain explicit approval before configuring external credentials or publishing. Production fails closed when configuration is absent. Configuring production variables does not authorize preview environments to access real submissions.
 

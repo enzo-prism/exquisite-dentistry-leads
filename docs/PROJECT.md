@@ -8,6 +8,9 @@ Read README.md for deployment configuration, behavior, privacy boundaries and ve
 - src/styles.css: existing brand treatment and responsive layouts.
 - api/login.js, logout.js, session.js: server authentication endpoints.
 - api/leads.js: protected, read-only complete Formspree inbox.
+- api/pathways.js: protected Cherry mailbox notices and Vercel Web Analytics counts for the public website. `PATHWAYS_MODE=synthetic` returns fixture data and does not call either provider.
+- server/cherry.js: turns Cherry approval and issued-plan mail into amounts. Marketing mail is ignored.
+- server/pathways.js: combines those notices with analytics. Widget-ready events are reported separately and are not treated as applications.
 - server/auth.js: signing, cookie verification, origin validation and best-effort throttling.
 - server/formspree.js: provider pagination, bounded response parsing and field normalization.
 - tests/server.test.js: synthetic auth, normalization and provider-failure checks.
@@ -33,6 +36,18 @@ The desktop row is a pointer target with a native name button for keyboard acces
 `normalize()` combines distinct nonempty message, notes and Message values in provider order, retaining their line breaks and avoiding repeated identical aliases. No extra provider fields or raw payloads are exposed. All data remains behind the existing authenticated, no-store API.
 
 Use the synthetic local server to check desktop row clicks, keyboard activation, mobile cards at 390px and 320px, long notes through their final line, additional notes, empty notes, refresh while open, Escape/close/backdrop dismissal, focus return, and lock clearing private content. The synthetic fixture includes a deliberately long multiline message and separate notes. Do not use real submission screenshots as test artifacts.
+
+## Website pathways
+
+The page heading stays the single lowercase `h1`, "leads". Below the Formspree summary, the pathways section covers the last 90 days:
+
+- Formspree rows whose received time falls in that window.
+- Cherry widget clicks and on-site apply-button clicks from Vercel Web Analytics on `exquisite-dentistry`.
+- Cherry approvals and funded plans from `withcherry.com` mail. Approval amount is a credit limit. Funded amount is the purchase amount on the issued plan. Unfinished applications are not in the mailbox.
+- Scheduling clicks into `/schedule-consultation` and page views whose path contains `schedule`. A completed Simplifeye booking is not in this dashboard.
+- Phone clicks. These are `tel:` clicks, not answered calls.
+
+Analytics counts include only visitors who granted analytics consent. GA4 `generate_lead` is not shown because older contact page views were counted as leads.
 
 ## Dashboard heading
 

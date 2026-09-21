@@ -10,6 +10,7 @@ if (process.argv.includes('--synthetic')) {
   process.env.DASHBOARD_PASSWORD = 'synthetic-local-check-only'
   process.env.SESSION_SECRET = 'synthetic-local-session-secret-only-123456789'
   process.env.FORMSPREE_READ_KEY = 'synthetic-never-sent'
+  process.env.PATHWAYS_MODE = 'synthetic'
   const actualFetch = globalThis.fetch
   globalThis.fetch = async (url, options) => {
     if (String(url).startsWith('https://formspree.io/api/0/forms/xkgknpkl/submissions')) {
@@ -24,7 +25,7 @@ if (process.argv.includes('--synthetic')) {
     return actualFetch(url, options)
   }
 }
-const handlers = Object.fromEntries(await Promise.all(['login','logout','session','leads'].map(async name => [name,(await import(`../api/${name}.js`)).default])))
+const handlers = Object.fromEntries(await Promise.all(['login','logout','session','leads','pathways'].map(async name => [name,(await import(`../api/${name}.js`)).default])))
 const types = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'}
 http.createServer(async (req,res) => {
   try {

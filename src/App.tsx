@@ -15,6 +15,7 @@ import {
   X,
 } from './icons'
 import { Button, Card, IconButton, Input } from './components/ui'
+import { Pathways, type PathwayReport } from './components/Pathways'
 
 type Channel = string
 
@@ -152,6 +153,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [fetchedAt, setFetchedAt] = useState('')
+  const [pathways, setPathways] = useState<PathwayReport | null>(null)
   const [loaded, setLoaded] = useState(false)
   const requestVersion = useRef(0)
   const explicitlyLocked = useRef(false)
@@ -164,6 +166,7 @@ function App() {
     setTestFilter('All submissions')
     setPersonFilter('')
     setFetchedAt('')
+    setPathways(null)
     setLoaded(false)
     setHasAccess(false)
     setLoading(false)
@@ -173,11 +176,16 @@ function App() {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch('/api/leads', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(20_000) })
+      const [response, pathwayResponse] = await Promise.all([
+        fetch('/api/leads', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(20_000) }),
+        fetch('/api/pathways', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(20_000) }),
+      ])
       if (version !== requestVersion.current) return
-      if (response.status === 401) { clearPrivateData(); return }
+      if (response.status === 401 || pathwayResponse.status === 401) { clearPrivateData(); return }
       if (!response.ok) throw new Error('Submissions could not be refreshed. Please retry.')
       const data = await response.json()
+      if (pathwayResponse.ok) setPathways(await pathwayResponse.json())
+      else setPathways(null)
       if (version !== requestVersion.current) return
       if (!Array.isArray(data.leads)) throw new Error('Unexpected data response. Please retry.')
       setLeads(data.leads)
@@ -190,6 +198,7 @@ function App() {
         setError('Submissions are unavailable. Check the connection and retry.')
         setLeads([])
         setSelected(null)
+        setPathways(null)
         setLoaded(false)
       }
     } finally { if (version === requestVersion.current) setLoading(false) }
@@ -304,6 +313,12 @@ function App() {
           <div><strong>{loaded ? topSource : '—'}</strong><span>Top source</span></div>
           <div className="sample-status"><span className="status-dot" />{loading ? 'Refreshing…' : loaded ? 'Formspree inbox' : 'Unavailable'}</div>
         </section>
+
+        <Pathways
+          report={pathways}
+          loading={loading && !pathways}
+          formCount={pathways ? leads.filter((lead) => { const age = now - timestamp(lead.received); return age >= 0 && age < pathways.windowDays * 86400000 }).length : null}
+        />
 
         <div className="data-status" aria-live="polite"><span>{fetchedAt && loaded ? `Updated ${formatReceived(fetchedAt).date}, ${formatReceived(fetchedAt).time} PT` : 'No verified data loaded'}</span><Button disabled={loading} onClick={() => void refresh()}>Refresh</Button></div>
         {error && <p className="data-error" role="alert">{error}</p>}

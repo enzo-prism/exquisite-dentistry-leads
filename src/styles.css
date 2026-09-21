@@ -116,6 +116,18 @@ h1 { margin: 0; font-size: clamp(42px, 7vw, 92px); font-weight: 500; letter-spac
 .source-filter:focus-visible { outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent); outline-offset: 2px; }
 
 .card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--card-foreground); }
+.badge { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); background: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.pathways { display: grid; gap: 16px; margin-top: 28px; }
+.pathway-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pathway-stat { display: grid; gap: 6px; padding: 16px 18px; }
+.pathway-stat span, .pathway-stat small { color: var(--muted-foreground); font-size: 11px; }
+.pathway-stat strong { font-size: 22px; font-weight: 500; letter-spacing: -.04em; }
+.pathway-card { margin-top: 0; }
+.pathway-table { min-width: 720px; }
+.pathway-card th:nth-child(n), .pathway-card td:nth-child(n) { width: auto; }
+.pathway-card td { height: auto; }
+.pathway-empty, .pathway-footnote { margin: 0; padding: 14px 20px 16px; color: var(--muted-foreground); font-size: 11px; line-height: 1.45; }
+.pathway-footnote { border-top: 1px solid var(--border); }
 .leads-card { overflow: hidden; margin-top: 28px; }
 .table-heading { display: flex; align-items: center; justify-content: space-between; gap: 22px; min-height: 74px; padding: 17px 20px; border-bottom: 1px solid var(--border); }
 .table-heading h2 { margin: 0; font-size: 14px; font-weight: 600; }
@@ -226,7 +238,8 @@ tbody tr:hover { background: color-mix(in srgb, var(--muted) 68%, transparent); 
   .filters { display: grid; grid-template-columns: 1fr 1fr; }
   .search-box { grid-column: 1 / -1; }
   .select-wrap select, .sort-wrap select { width: 100%; }
-  .table-scroll { display: none; }
+  .leads-card:not(.pathway-card) .table-scroll { display: none; }
+  .pathway-grid { grid-template-columns: 1fr; }
   .mobile-cards { display: grid; }
   .lead-card { display: grid; gap: 13px; min-height: 154px; padding: 18px; border: 0; border-bottom: 1px solid var(--border); color: var(--foreground); background: var(--card); text-align: left; cursor: pointer; }
   .lead-card:last-child { border-bottom: 0; }
