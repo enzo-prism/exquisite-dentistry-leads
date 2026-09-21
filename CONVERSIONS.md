@@ -4,7 +4,7 @@
 
 The signed Formspree webhook at `/api/formspree-conversion` is the primary server delivery path. Formspree retains the original submission and documents automatic plugin retries. The handler acknowledges eligible receipts only after OpenAI returns HTTP success. It returns 503 on upstream failure/timeouts, retaining the same event ID on retries. This is **Formspree-backed retry delivery**, not an independently persisted outbox. There is no database or in-memory delivery ledger.
 
-The handler is disabled until all required server variables are present. Deploying this code alone does not activate a webhook or campaign optimization. No live delivery was enabled while implementing it.
+The handler is disabled until all required server variables are present. Live mode additionally requires Vercel's `VERCEL_ENV=production`; preview, development, unknown and missing deployment environments return 503 before reading the receipt or contacting OpenAI. Validation-only mode remains available with deliberate credentials in any environment. Do not manually set `VERCEL_ENV` to bypass this boundary. Local delivery tests inject synthetic configuration and stub outbound requests. Deploying this code alone does not activate a webhook or campaign optimization. No live delivery was enabled while implementing it.
 
 The optional authenticated `/api/reconcile-conversions` endpoint reads the existing durable Formspree inbox and sends only `validate_only: true` requests. It cannot ingest conversions, even if repeatedly invoked. No recurring job is configured. OpenAI's public documentation says to reuse event IDs on retries, but does not state a deduplication retention guarantee; therefore unbounded live inbox replay is deliberately unsupported.
 

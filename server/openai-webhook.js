@@ -1,5 +1,8 @@
 import { prepareFormspreeConversion } from './openai-conversion-validation.js'
 export function webhookConfig(env) {
+  // Credentials copied to a preview must never enable conversion ingestion.
+  // Vercel supplies this deployment boundary; missing/local values fail closed.
+  if (env.OPENAI_WEBHOOK_MODE === 'live' && env.VERCEL_ENV !== 'production') return null
   if (!['validate_only', 'live'].includes(env.OPENAI_WEBHOOK_MODE)
     || !env.FORMSPREE_WEBHOOK_SIGNING_SECRET || !env.OPENAI_CONVERSIONS_API_KEY
     || env.OPENAI_ADS_PIXEL_ID !== 'V7dxjf8kBAWERq3f9VG2wM') return null
