@@ -16,6 +16,10 @@ Read README.md for deployment configuration, behavior, privacy boundaries and ve
 
 Production form ID is fixed to xkgknpkl, not request-controlled. Real API keys remain server-side. Static builds must never import exports or contain raw submission data. Read the provider using its read-only key only after approval to configure that integration.
 
+## Shared password
+
+Production `DASHBOARD_PASSWORD` is `exquisite`. It was set in the Vercel production environment on 21 Sep 2026 and confirmed with a same-origin login. The value is not in the frontend. Preview and development do not carry it. Password changes do not revoke cookies already issued; rotate `SESSION_SECRET` to sign everyone out. See README.md for the session lifetime and the rest of the server configuration.
+
 Do not change Formspree classifications, delete submissions, send notifications, create bookings or deploy as part of a local verification run.
 
 ## September 7 read-only reconciliation

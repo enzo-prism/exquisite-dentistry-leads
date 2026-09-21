@@ -27,10 +27,12 @@ Set these in Vercel production environment variables, never VITE_* or checked-in
 | Variable | Purpose |
 | --- | --- |
 | FORMSPREE_READ_KEY | Existing read-only API key for form xkgknpkl; never use its master key. |
-| DASHBOARD_PASSWORD | Shared practice password, at least 8 characters. Production is the simple shared value `exquisite` (practice-shared login, not staff accounts). |
+| DASHBOARD_PASSWORD | Shared practice password. Production value, set 21 Sep 2026: `exquisite`. Code rejects anything shorter than 8 characters. Practice-shared login, not staff accounts. |
 | SESSION_SECRET | Random signing secret, at least 32 characters. Rotate to revoke all sessions. |
 
 Obtain explicit approval before configuring external credentials or publishing. Production fails closed when configuration is absent. Configuring production variables does not authorize preview environments to access real submissions.
+
+On 21 Sep 2026 the production `DASHBOARD_PASSWORD` was set to `exquisite` and the production deployment was rebuilt so the new value is live. A same-origin login with that password returned 200. A wrong password returned 401. Preview and development were left unchanged. Browsers that signed in before the change keep a valid cookie until it expires or `SESSION_SECRET` is rotated.
 
 ## Verification
 
