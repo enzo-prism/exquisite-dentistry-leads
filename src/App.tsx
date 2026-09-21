@@ -14,8 +14,9 @@ import {
   UserRound,
   X,
 } from './icons'
-import { Button, Card, IconButton, Input } from './components/ui'
+import { Button, Card, FilterChip, IconButton, Input, ToggleGroup } from './components/ui'
 import { Pathways, type PathwayReport } from './components/Pathways'
+import { filterLeads, leadWindows, sortLeads } from './filters.js'
 
 type Channel = string
 
@@ -143,10 +144,13 @@ function AccessGate({ theme, onToggleTheme, onUnlock }: { theme: 'light' | 'dark
 
 function App() {
   const [query, setQuery] = useState('')
-  const [source, setSource] = useState('All sources')
-  const [testFilter, setTestFilter] = useState('All submissions')
+  const [source, setSource] = useState('all')
+  const [windowFilter, setWindowFilter] = useState('all')
+  const [formFilter, setFormFilter] = useState('')
+  const [contactFilter, setContactFilter] = useState('any')
+  const [testFilter, setTestFilter] = useState('all')
   const [personFilter, setPersonFilter] = useState('')
-  const [sort, setSort] = useState('Newest first')
+  const [sort, setSort] = useState('newest')
   const [selected, setSelected] = useState<Lead | null>(null)
   const [hasAccess, setHasAccess] = useState(false)
   const [leads, setLeads] = useState<Lead[]>([])
@@ -162,9 +166,13 @@ function App() {
     setLeads([])
     setSelected(null)
     setQuery('')
-    setSource('All sources')
-    setTestFilter('All submissions')
+    setSource('all')
+    setWindowFilter('all')
+    setFormFilter('')
+    setContactFilter('any')
+    setTestFilter('all')
     setPersonFilter('')
+    setSort('newest')
     setFetchedAt('')
     setPathways(null)
     setLoaded(false)
@@ -248,25 +256,16 @@ function App() {
     return () => { dialog.close(); document.body.style.overflow = previousOverflow }
   }, [selectedId])
 
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase()
-    return leads
-      .filter((lead) => source === 'All sources' || lead.channel === source)
-      .filter((lead) => testFilter === 'All submissions' || (testFilter === 'Marked tests only' ? lead.isTest === true : lead.isTest !== true))
-      .filter((lead) => !personFilter || (lead.personType || 'Not provided') === personFilter)
-      .filter((lead) => !needle || Object.values(lead).some((value) => String(value).toLowerCase().includes(needle)))
-      .sort((a, b) => {
-        if (sort === 'Oldest first') return (timestamp(a.received) || 0) - (timestamp(b.received) || 0)
-        if (sort === 'Name A–Z') return a.name.localeCompare(b.name)
-        return (timestamp(b.received) || 0) - (timestamp(a.received) || 0)
-      })
-  }, [leads, query, source, sort, testFilter, personFilter])
-
   const now = Date.now()
+  const filters = useMemo(() => ({ window: windowFilter, source, form: formFilter, person: personFilter, tests: testFilter, contact: contactFilter, query }), [windowFilter, source, formFilter, personFilter, testFilter, contactFilter, query])
+  const filtered = useMemo(() => sortLeads(filterLeads(leads, filters, now), sort), [leads, filters, now, sort])
+  const resetFilters = () => { setQuery(''); setSource('all'); setWindowFilter('all'); setFormFilter(''); setContactFilter('any'); setTestFilter('all'); setPersonFilter('') }
   const recentCount = leads.filter((lead) => { const age = now - timestamp(lead.received); return age >= 0 && age < 7 * 24 * 60 * 60 * 1000 }).length
   const sourceCounts = leads.reduce((counts, lead) => counts.set(lead.channel, (counts.get(lead.channel) ?? 0) + 1), new Map<string, number>())
   const channels = [...sourceCounts.keys()].sort()
   const personTypes = [...new Set(leads.map((lead) => lead.personType || 'Not provided'))].sort()
+  const formTypes = [...new Set(leads.map((lead) => lead.formType || 'Not provided'))].sort()
+  const filtersActive = Boolean(query || source !== 'all' || windowFilter !== 'all' || formFilter || contactFilter !== 'any' || testFilter !== 'all' || personFilter)
   const markedTestCount = leads.filter((lead) => lead.isTest === true).length
   const topSource = [...sourceCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'None'
   const toggleTheme = () => setTheme((value) => value === 'light' ? 'dark' : 'light')
@@ -331,7 +330,7 @@ function App() {
               key={channel}
               type="button"
               aria-pressed={source === channel}
-              onClick={() => setSource((value) => value === channel ? 'All sources' : channel)}
+              onClick={() => setSource((value) => value === channel ? 'all' : channel)}
             >
               <SourceLogo channel={channel} theme={theme} />
               <span><strong>{channel}</strong><small>{sourceCounts.get(channel)} submissions</small></span>
@@ -341,20 +340,37 @@ function App() {
 
         <Card className="leads-card">
           <div className="table-heading">
-            <div><h2>Inbox submissions</h2><p>{loaded ? `${filtered.length} shown` : 'Unavailable'}</p></div>
+            <div><h2>Inbox submissions</h2><p>{loaded ? `${filtered.length} of ${leads.length} shown` : 'Unavailable'}</p></div>
             <div className="filters">
-              <label className="search-box"><Search /><span className="sr-only">Search leads</span><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search leads" /></label>
-              <label className="select-wrap"><SlidersHorizontal /><span className="sr-only">Filter by source</span><select value={source} onChange={(event) => setSource(event.target.value)}><option>All sources</option>{channels.map((item) => <option key={item}>{item}</option>)}</select><ChevronDown /></label>
-              <label className="select-wrap"><span className="sr-only">Filter marked tests</span><select value={testFilter} onChange={(event) => setTestFilter(event.target.value)}><option>All submissions</option><option>Exclude marked tests</option><option>Marked tests only</option></select><ChevronDown /></label>
+              <label className="search-box"><Search /><span className="sr-only">Search name, contact, or notes</span><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, contact, notes" /></label>
+              <ToggleGroup label="Received" value={windowFilter} options={leadWindows} onChange={setWindowFilter} />
+              <label className="select-wrap"><SlidersHorizontal /><span className="sr-only">Filter by source</span><select value={source} onChange={(event) => setSource(event.target.value)}><option value="all">All sources</option>{channels.map((item) => <option key={item} value={item}>{item}</option>)}</select><ChevronDown /></label>
+              <label className="select-wrap"><span className="sr-only">Filter by form</span><select value={formFilter} onChange={(event) => setFormFilter(event.target.value)}><option value="">All forms</option>{formTypes.map((item) => <option key={item} value={item}>{formLabel(item)}</option>)}</select><ChevronDown /></label>
               <label className="select-wrap"><span className="sr-only">Filter by person type</span><select value={personFilter} onChange={(event) => setPersonFilter(event.target.value)}><option value="">All person types</option>{personTypes.map((item) => <option key={item} value={item}>{personLabel(item)}</option>)}</select><ChevronDown /></label>
-              <label className="select-wrap sort-wrap"><ArrowDownUp /><span className="sr-only">Sort leads</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option>Newest first</option><option>Oldest first</option><option>Name A–Z</option></select><ChevronDown /></label>
+              <label className="select-wrap"><span className="sr-only">Filter by contact details</span><select value={contactFilter} onChange={(event) => setContactFilter(event.target.value)}><option value="any">Any contact</option><option value="phone">Has phone</option><option value="email">Has email</option><option value="missing">Missing contact</option></select><ChevronDown /></label>
+              <label className="select-wrap"><span className="sr-only">Filter marked tests</span><select value={testFilter} onChange={(event) => setTestFilter(event.target.value)}><option value="all">All submissions</option><option value="exclude">Hide tests</option><option value="only">Tests only</option></select><ChevronDown /></label>
+              <label className="select-wrap sort-wrap"><ArrowDownUp /><span className="sr-only">Sort leads</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="form">Form</option></select><ChevronDown /></label>
             </div>
           </div>
+          {filtersActive && <div className="filter-chips" aria-label="Active filters">
+            {windowFilter !== 'all' && <FilterChip label={leadWindows.find((item) => item.id === windowFilter)?.label || windowFilter} onRemove={() => setWindowFilter('all')} />}
+            {source !== 'all' && <FilterChip label={source} onRemove={() => setSource('all')} />}
+            {formFilter && <FilterChip label={formLabel(formFilter)} onRemove={() => setFormFilter('')} />}
+            {personFilter && <FilterChip label={personLabel(personFilter)} onRemove={() => setPersonFilter('')} />}
+            {contactFilter !== 'any' && <FilterChip label={contactFilter === 'phone' ? 'Has phone' : contactFilter === 'email' ? 'Has email' : 'Missing contact'} onRemove={() => setContactFilter('any')} />}
+            {testFilter !== 'all' && <FilterChip label={testFilter === 'exclude' ? 'Hide tests' : 'Tests only'} onRemove={() => setTestFilter('all')} />}
+            {query && <FilterChip label={`“${query}”`} onRemove={() => setQuery('')} />}
+            <Button className="filter-reset" onClick={resetFilters}>Clear filters</Button>
+          </div>}
 
           {filtered.length ? <>
             <div className="table-scroll">
               <table>
-                <thead><tr><th>Submission</th><th>Contact</th><th>Source</th><th>Notes</th><th>Received</th></tr></thead>
+                <thead><tr>
+                  <th aria-sort={sort === 'name-asc' ? 'ascending' : sort === 'name-desc' ? 'descending' : 'none'}><button type="button" className="sort-header" onClick={() => setSort((value) => value === 'name-asc' ? 'name-desc' : 'name-asc')}>Submission</button></th>
+                  <th>Contact</th><th>Source</th><th>Notes</th>
+                  <th aria-sort={sort === 'oldest' ? 'ascending' : sort === 'newest' ? 'descending' : 'none'}><button type="button" className="sort-header" onClick={() => setSort((value) => value === 'newest' ? 'oldest' : 'newest')}>Received</button></th>
+                </tr></thead>
                 <tbody>{filtered.map((lead) => {
                   const received = formatReceived(lead.received)
                   return <tr key={lead.id} className="submission-row" onClick={(event) => {
@@ -377,7 +393,7 @@ function App() {
                 <span className="lead-card-meta"><span><Mail />{lead.email || 'Email not provided'}</span><span><Phone />{lead.phone || 'Phone not provided'}</span><span><Clock3 />{received.date}, {received.time} PT</span></span>
               </button>
             })}</div>
-          </> : <div className="empty-state"><div className="empty-icon"><Search /></div><h3>{!loaded ? 'Submissions unavailable' : leads.length ? 'No matching submissions' : 'No inbox submissions'}</h3><p>{!loaded ? 'Refresh to load verified data.' : leads.length ? 'Try another search or source.' : 'The Formspree inbox is empty.'}</p><Button onClick={() => { setQuery(''); setSource('All sources'); setTestFilter('All submissions'); setPersonFilter('') }}>Clear filters</Button></div>}
+          </> : <div className="empty-state"><div className="empty-icon"><Search /></div><h3>{!loaded ? 'Submissions unavailable' : leads.length ? 'No matching submissions' : 'No inbox submissions'}</h3><p>{!loaded ? 'Refresh to load verified data.' : leads.length ? 'Clear a filter or try another search.' : 'The Formspree inbox is empty.'}</p>{filtersActive && <Button onClick={resetFilters}>Clear filters</Button>}</div>}
         </Card>
         <p className="privacy-note">Inbox records are raw submissions, not verified patients or qualified leads. Spam and Simplifeye bookings are excluded. Times shown in Pacific time.</p>
       </main>

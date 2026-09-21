@@ -117,6 +117,15 @@ h1 { margin: 0; font-size: clamp(42px, 7vw, 92px); font-weight: 500; letter-spac
 
 .card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); color: var(--card-foreground); }
 .badge { display: inline-flex; align-items: center; min-height: 24px; padding: 0 8px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted-foreground); background: var(--muted); font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.toggle-group { display: inline-flex; align-items: center; gap: 2px; min-height: 38px; padding: 3px; border: 1px solid var(--border); border-radius: 10px; background: var(--muted); }
+.toggle-group button { min-height: 30px; padding: 0 10px; border: 0; border-radius: 8px; color: var(--muted-foreground); background: transparent; cursor: pointer; font-size: 11px; font-weight: 600; }
+.toggle-group button[data-state="on"] { color: var(--foreground); background: var(--card); box-shadow: 0 1px 2px rgba(13,16,15,.08); }
+.toggle-group button:focus-visible, .sort-header:focus-visible, .filter-chip:focus-visible { outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent); outline-offset: 2px; }
+.filter-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 20px 14px; }
+.filter-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--foreground); background: var(--muted); cursor: pointer; font-size: 11px; }
+.filter-reset { min-height: 28px; padding: 0 10px; font-size: 11px; }
+.sort-header { padding: 0; border: 0; color: inherit; background: transparent; cursor: pointer; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+.sort-header:hover { color: var(--foreground); }
 .pathways { display: grid; gap: 16px; margin-top: 28px; }
 .pathway-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .pathway-stat { display: grid; gap: 6px; padding: 16px 18px; }

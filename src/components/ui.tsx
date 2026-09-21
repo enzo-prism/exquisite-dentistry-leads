@@ -44,3 +44,13 @@ export function TableHead({ children }: { children: ReactNode }) {
 export function TableCell({ children }: { children: ReactNode }) {
   return <td data-slot="table-cell">{children}</td>
 }
+
+export function ToggleGroup({ label, value, options, onChange }: { label: string; value: string; options: { id: string; label: string }[]; onChange: (id: string) => void }) {
+  return <div className="toggle-group" role="group" aria-label={label}>
+    {options.map((option) => <button key={option.id} type="button" data-state={value === option.id ? 'on' : 'off'} aria-pressed={value === option.id} onClick={() => onChange(option.id)}>{option.label}</button>)}
+  </div>
+}
+
+export function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+  return <button type="button" className="filter-chip" data-slot="badge" onClick={onRemove}>{label}<span aria-hidden="true">×</span><span className="sr-only">Remove {label} filter</span></button>
+}

@@ -39,7 +39,7 @@ Use the synthetic local server to check desktop row clicks, keyboard activation,
 
 ## Website pathways
 
-The page heading stays the single lowercase `h1`, "leads". Below the Formspree summary, the pathways section covers the last 90 days:
+The page heading stays the single lowercase `h1`, "leads". The inbox can be limited to the past 7, 30, or 90 days, and filtered by source, form, person type, contact details, and test rows. Column headers sort by name or received time. Active filters appear as removable chips. Cherry notices can be limited to approved or funded rows and sorted by date, amount, or name. Website signals can be limited to Formspree or Vercel and sorted by count or name. Below the Formspree summary, the pathways section covers the last 90 days:
 
 - Formspree rows whose received time falls in that window.
 - Cherry widget clicks and on-site apply-button clicks from Vercel Web Analytics on `exquisite-dentistry`.
