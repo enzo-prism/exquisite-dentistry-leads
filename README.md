@@ -67,10 +67,10 @@ This provides a shared practice login, not individual staff accounts, roles or a
 - Formspree submissions API: https://help.formspree.io/articles/the-forms-api/form-submissions-api
 - Authentication: https://help.formspree.io/articles/the-forms-api/api-authentication
 
-## October 4 freshness hardening (pending production release)
+## October 4 freshness hardening (released)
 
 Cherry mailbox reads now paginate completely, validate responses, normalize received timestamps, and apply an exact rolling 90-day window. Funded notices must identify Exquisite Dentistry; unknown amounts are disclosed as missing from known subtotals. Website analytics validate response shape and counts, fail on group saturation, and return their actual UTC-calendar-day query window. Both providers have bounded parallel reads. A pathways failure cannot discard a healthy lead inbox, and unavailable analytics never render zero-valued detail labels.
 
 Provider UTC-day coverage is disclosed separately from rolling-window inbox and financing totals. A pathway check timestamp is an attempted source read; each source status still determines whether its values are available.
 
-The October 4 audit found production analytics unavailable while the authenticated Vercel CLI could read the website's metrics. The existing credential could not be inspected, so its exact failure cause is unresolved. Publication and any external credential changes still require explicit approval. After approval, deploy the prepared changes, inspect the improved production error if needed, repair the analytics access configuration, and reconcile authenticated results against each provider before declaring the dashboard fully current.
+The October 4 release was approved and published. Production returned an analytics access denial; replacing the credential with a dedicated team-scoped token restored access. Project-scoped tokens returned 404 for the analytics endpoint and were not retained. The replacement token is stored only in the production server environment and expires October 4, 2027; renew it before then. Other environments and existing shared credentials were unchanged. Live readback verified 35 inbox submissions, 14 Cherry approvals ($124,800), 10 funded plans ($39,453.50), 94 Cherry clicks, 37 scheduling clicks, 63 scheduling page views, and 13 phone clicks. Both pathway source statuses returned ok. Desktop and 390px viewport checks passed. The original token's underlying access-denial cause was not independently established.
