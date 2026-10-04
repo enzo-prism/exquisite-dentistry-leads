@@ -25,7 +25,7 @@ if (process.argv.includes('--synthetic')) {
     return actualFetch(url, options)
   }
 }
-const handlers = Object.fromEntries(await Promise.all(['login','logout','session','leads','pathways'].map(async name => [name,(await import(`../api/${name}.js`)).default])))
+const handlers = Object.fromEntries(await Promise.all(['login','logout','session','leads','pathways','website'].map(async name => [name,(await import(`../api/${name}.js`)).default])))
 const types = {'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'}
 http.createServer(async (req,res) => {
   try {

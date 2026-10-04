@@ -29,7 +29,7 @@ const sections = [
   { id: 'overview', label: 'Overview', icon: LayoutGrid, title: 'Overview', description: 'A clear view of inquiries, patient financing, and website performance.' },
   { id: 'inbox', label: 'Lead inbox', icon: Inbox, title: 'Lead inbox', description: 'Find patient inquiries, review their details, and plan your next conversation.' },
   { id: 'financing', label: 'Cherry financing', icon: CreditCard, title: 'Cherry financing', description: 'Review approval and funded-plan notices from the practice mailbox.' },
-  { id: 'activity', label: 'Website activity', icon: Activity, title: 'Website activity', description: 'Review consented clicks, form events, and scheduling activity.' },
+  { id: 'activity', label: 'Website & search', icon: Activity, title: 'Website & search', description: 'Explore website traffic and Google Search performance.' },
 ] as const
 
 function checkedLabel(fetchedAt: string, loaded: boolean) {

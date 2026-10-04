@@ -8,7 +8,7 @@ Deploy to the existing exquisite-dentistry-leads Vercel project. Verify authenti
 
 ## Behavior
 
-- Responsive shadcn sidebar: Overview, Lead inbox, Cherry financing, and Website activity. Desktop collapses to icons; mobile uses a keyboard-accessible drawer.
+- Responsive shadcn sidebar: Overview, Lead inbox, Cherry financing, and Website & search. Desktop collapses to icons; mobile uses a keyboard-accessible drawer.
 - Inbox and pathway filters persist between sections; Filters opens an accessible dialog for source, form, person type, contact availability, tests, and sorting.
 - Semantic light/dark colors, Geist typography, and shadcn Base UI cards, fields, tables, and dialogs.
 
@@ -23,7 +23,7 @@ Deploy to the existing exquisite-dentistry-leads Vercel project. Verify authenti
 - Loading, refresh, failure and last-successful-refresh states. Incomplete provider reads fail rather than appearing as a partial inbox.
 - Private state stays in memory and is cleared on lock or expired authentication. No contact data in URLs, browser storage, analytics or logs.
 - Formspree spam and separate Simplifeye bookings are excluded.
-- A website-pathways section shows Cherry financing notices and consented Vercel Analytics counts for Cherry clicks, scheduling clicks, scheduler page views, and phone clicks. Approved Cherry dollars are a credit limit. Funded Cherry dollars are the purchase amount on an issued plan, not collected production. Completed Simplifeye bookings are not available.
+- Cherry financing shows approval and funded-plan notices. Website & search shows GA4 traffic and Google Search Console performance. Approved Cherry dollars are a credit limit. Funded Cherry dollars are the purchase amount on an issued plan, not collected production. Completed Simplifeye bookings are not available.
 
 ## Server-only configuration
 
@@ -36,6 +36,8 @@ Set these in Vercel production environment variables, never VITE_* or checked-in
 | SESSION_SECRET | Random signing secret, at least 32 characters. Rotate to revoke all sessions. |
 | GOOGLE_SERVICE_ACCOUNT_JSON | Service account JSON used only to read Cherry mail for enzo@design-prism.com. Never commit it. |
 | GOOGLE_IMPERSONATE | Mailbox to read. Production is `enzo@design-prism.com`. |
+| GOOGLE_ANALYTICS_SERVICE_ACCOUNT_JSON | Separate read-only GA4/Search Console reporting identity; never replace the Gmail identity. |
+| ENABLE_VERCEL_ANALYTICS | Legacy analytics opt-in; disabled by default and not displayed. |
 | VERCEL_ANALYTICS_TOKEN | Token that can query Web Analytics for the public website project. |
 | VERCEL_ANALYTICS_TEAM_ID | Team that owns exquisitedentistryla.com. |
 | VERCEL_ANALYTICS_PROJECT_ID | Vercel project id for `exquisite-dentistry`, not this dashboard. |
@@ -88,3 +90,15 @@ Generated shadcn components are source-owned under `src/components/ui`. Shared T
 ## Spacious workspace refresh
 
 The dashboard uses a quiet, spacious layout with consistent Lucide icons. Overview has one inbox summary strip and four focused metrics. The inbox surface shows names, sources, received dates, and explicit test badges; opening a record reveals full contact information, notes, campaign, and submitted context. Metric explanations, freshness, methodology, and source health are available through labeled dialogs. Unavailable sources and partial subtotals remain visible. Desktop/mobile, dialog interaction, filter retention, dark mode, and accessibility were checked with synthetic records before release.
+
+## GA4 and Search Console reporting
+
+The authenticated `/api/website` endpoint uses GA4 property `498175984` (Exquisite Dentistry - Live) and Search Console `sc-domain:exquisitedentistryla.com`. GA4 reports only canonical and www website hostnames, across 28 complete Pacific calendar days ending yesterday. Recent data can still be processing. Search Console requests final web-search data, finds its latest observed date, and reports the 28 days ending there; its cutoff can differ from GA4. Each card shows its source and date range.
+
+GA4 provides active users, sessions, page views, engagement rate, top channels/pages, and scheduling/contact/other CTA events. Those events do not establish appointments, answered calls, or leads. Historical `generate_lead` and mixed-action `financing_engagement` are deliberately excluded. Inbox submissions and Cherry notices remain independent operational sources. GA4 measurement can be affected by consent choices; it is not described as exclusively consented traffic.
+
+Search Console totals come from the ungrouped property report, never sums of top rows. Query anonymization and top-row limits mean breakdowns do not sum to totals. Empty/unavailable sources remain distinct from zero. GA4 sampling, thresholding, and grouped-data flags are disclosed.
+
+Both integrations use server-side read-only scopes. Successful aggregate reports are cached per server instance for up to 15 minutes, degraded reports for one minute, with concurrent requests coalesced. HTTP responses remain private/no-store and require authentication even on cache hits. Source dialogs show the fetch time. A failed optional provider does not discard the inbox; lock or any authentication expiry clears all private client state. The legacy Vercel analytics query is disabled by default to avoid repeated rate-limited reads.
+
+Release verification for the Google reporting integration: all 59 tests and the production build passed; production dependency audit found zero vulnerabilities. Synthetic desktop Traffic and 320px Search accessibility audits passed with zero violations after making horizontal tables keyboard-focusable. Both live Google providers returned healthy reports before deployment. Production readback remains a separate release check.

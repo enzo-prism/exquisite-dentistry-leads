@@ -17,6 +17,8 @@ import {
 } from 'lucide-react'
 import { Button, Card, FilterChip, IconButton, Input, ToggleGroup } from './components/ui'
 import { Pathways, type PathwayReport } from './components/Pathways'
+import { WebsiteData, type WebsiteReport } from './components/WebsiteData'
+import { isWebsiteReport } from './website-report.js'
 import { filterLeads, leadWindows, sortLeads } from './filters.js'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from './components/ui/dialog'
 import { DashboardShell, type DashboardView } from './components/DashboardShell'
@@ -168,6 +170,7 @@ function App() {
   const [fetchedAt, setFetchedAt] = useState('')
   const [view, setView] = useState<DashboardView>('overview')
   const [moreFilters, setMoreFilters] = useState(false)
+  const [website, setWebsite] = useState<WebsiteReport | null>(null)
   const [pathways, setPathways] = useState<PathwayReport | null>(null)
   const [loaded, setLoaded] = useState(false)
   const requestVersion = useRef(0)
@@ -186,6 +189,7 @@ function App() {
     setSort('newest')
     setFetchedAt('')
     setPathways(null)
+    setWebsite(null)
     setView('overview')
     setMoreFilters(false)
     setLoaded(false)
@@ -197,14 +201,16 @@ function App() {
     setLoading(true)
     setError('')
     try {
-      const [leadResult, pathwayResult] = await Promise.allSettled([
+      const [leadResult, pathwayResult, websiteResult] = await Promise.allSettled([
         fetch('/api/leads', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(20_000) }),
         fetch('/api/pathways', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(20_000) }),
+        fetch('/api/website', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(20_000) }),
       ])
       if (version !== requestVersion.current) return
       const response = leadResult.status === 'fulfilled' ? leadResult.value : null
       const pathwayResponse = pathwayResult.status === 'fulfilled' ? pathwayResult.value : null
-      if (response?.status === 401 || pathwayResponse?.status === 401) { clearPrivateData(); return }
+      const websiteResponse = websiteResult.status === 'fulfilled' ? websiteResult.value : null
+      if (response?.status === 401 || pathwayResponse?.status === 401 || websiteResponse?.status === 401) { clearPrivateData(); return }
       if (!response) throw new Error('Submissions could not be refreshed. Please retry.')
       if (!response.ok) throw new Error('Submissions could not be refreshed. Please retry.')
       const data = await response.json()
@@ -216,9 +222,12 @@ function App() {
         !pathwayData.cherry.rows.every((row: Record<string, unknown> | null) => row && ['id', 'date', 'kind', 'applicant', 'planId'].every(key => typeof row[key] === 'string') && (row.amount === null || typeof row.amount === 'number')))) {
         pathwayData = null
       }
+      const websitePayload = websiteResponse?.ok ? await websiteResponse.json().catch(() => null) : null
+      const websiteData = isWebsiteReport(websitePayload) ? websitePayload as WebsiteReport : null
       if (version !== requestVersion.current) return
       if (!Array.isArray(data.leads)) throw new Error('Unexpected data response. Please retry.')
       setPathways(pathwayData)
+      setWebsite(websiteData)
       setLeads(data.leads)
       setFetchedAt(data.meta?.fetchedAt || '')
       setLoaded(true)
@@ -230,6 +239,7 @@ function App() {
         setLeads([])
         setSelected(null)
         setPathways(null)
+        setWebsite(null)
         setLoaded(false)
       }
     } finally { if (version === requestVersion.current) setLoading(false) }
@@ -309,8 +319,11 @@ function App() {
           </div>
           <Button variant="ghost" onClick={() => setView('inbox')} aria-label="Open lead inbox"><ArrowUpRight data-icon="inline-end" /></Button>
         </section>}
-        <div hidden={view === 'inbox'}>
-          <Pathways view={view === 'inbox' ? 'overview' : view} report={pathways} loading={loading && !pathways} formCount={loaded ? leads.filter((lead) => { const age = now - timestamp(lead.received); return age >= 0 && age < (pathways?.windowDays ?? 90) * 86400000 }).length : null} />
+        <div hidden={view !== 'overview' && view !== 'activity'}>
+          <WebsiteData view={view === 'activity' ? 'activity' : 'overview'} report={website} loading={loading && !website} />
+        </div>
+        <div hidden={view !== 'overview' && view !== 'financing'}>
+          <Pathways view={view === 'financing' ? 'financing' : 'overview'} report={pathways} loading={loading && !pathways} />
         </div>
         <div hidden={view !== 'inbox'}>
         <Card className="leads-card airy-inbox">

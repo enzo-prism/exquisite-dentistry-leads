@@ -6,13 +6,15 @@ Read README.md for deployment configuration, behavior, privacy boundaries and ve
 
 - src/App.tsx: authenticated client, memory-only submissions, filters, detail dialog and freshness.
 - src/components/DashboardShell.tsx: authenticated sidebar, section navigation, theme, refresh, and lock controls.
-- src/components/Pathways.tsx: overview, financing, and activity views with preserved filter state.
+- src/components/Pathways.tsx: overview and financing views with preserved filter state.
 - src/components/ui/: shadcn Base UI primitives; src/components/ui.tsx adapts existing inbox controls.
 - src/styles.css: Tailwind 4, Geist typography, evergreen semantic themes, and responsive layouts.
 - src/shadcn.css: vendored shadcn state utilities (MIT).
 - api/login.js, logout.js, session.js: server authentication endpoints.
 - api/leads.js: protected, read-only complete Formspree inbox.
 - api/pathways.js: protected Cherry mailbox notices and Vercel Web Analytics counts for the public website. `PATHWAYS_MODE=synthetic` returns fixture data and does not call either provider.
+- api/website.js: authenticated GA4 and Search Console reporting; source adapter in server/google-website.js, aggregate-only instance cache in server/report-cache.js.
+- src/components/WebsiteData.tsx: overview metrics and Traffic/Search tabs with source/date dialogs.
 - server/cherry.js: turns Cherry approval and issued-plan mail into amounts. Marketing mail is ignored.
 - server/pathways.js: combines those notices with analytics. Widget-ready events are reported separately and are not treated as applications.
 - server/auth.js: signing, cookie verification, origin validation and best-effort throttling.
@@ -43,17 +45,13 @@ Use the synthetic local server to check desktop row clicks, keyboard activation,
 
 ## Website pathways
 
-The sidebar separates Overview, Lead inbox, Cherry financing, and Website activity. Each view has one visible descriptive h1. Inbox filters include past 7, 30, 90 days or all time, source, form, person type, contact availability, and explicit tests. Advanced filters and sorting live in the Filters dialog; the received window and search stay on the surface. Column headers sort by name or received time, and active filters have removable chips. Cherry filters approved/funded notices and sorts by date, amount, or name. Activity filters Formspree/Vercel and sorts by count or name. Hidden views stay mounted to preserve filters; all private state clears on lock or expired authentication.
+The sidebar separates Overview, Lead inbox, Cherry financing, and Website & search. Hidden views preserve filters and reporting tabs; lock or expired authentication clears all private data. Inbox filters include received window, source, form, person type, contact availability, and explicit tests. Cherry filters approved/funded notices and sorts by date, amount, or name.
 
-Overview distinguishes all-time submissions and the past seven days from rolling 90-day Formspree/Cherry reporting. Analytics uses its actual UTC calendar-day boundaries and explicitly labels the incomplete current day. Missing sources display unavailable values rather than zero. The source panels cover:
+Overview distinguishes all-time and seven-day submissions, rolling 90-day Cherry financing, 28 complete Pacific days of GA4 traffic, and a separate 28-day finalized Search Console window. Every web metric labels its exact source/window; source dialogs explain freshness and measurement limits. GA4 uses property 498175984 and only the public website hosts; GSC uses the domain property. See README for the dedicated server-only reporting credential and cache policy. The Gmail credential is unchanged.
 
-- Formspree rows whose received time falls in that window.
-- Cherry widget clicks and on-site apply-button clicks from Vercel Web Analytics on `exquisite-dentistry`.
-- Cherry approvals and funded plans from `withcherry.com` mail. Approval amount is a credit limit. Funded amount is the purchase amount on the issued plan. Unfinished applications are not in the mailbox.
-- Scheduling clicks into `/schedule-consultation` and page views whose path contains `schedule`. A completed Simplifeye booking is not in this dashboard.
-- Phone clicks. These are `tel:` clicks, not answered calls.
+Formspree remains the source for submissions. Cherry approval dollars are credit limits and funded dollars are issued-plan purchase amounts, not collected revenue. GA4 clicks are interactions rather than confirmed calls or appointments. Historical generate_lead and financing_engagement are excluded because their definitions do not support a reliable lead or financing-click headline. Search totals come directly from ungrouped reports; top rows cannot be summed to recreate them.
 
-Analytics counts include only visitors who granted analytics consent. GA4 `generate_lead` is not shown because older contact page views were counted as leads.
+Legacy Vercel analytics code is retained behind ENABLE_VERCEL_ANALYTICS=true for explicit diagnostics, but disabled by default and absent from the current UI. Earlier dated Vercel verification in README is historical.
 
 ## Navigation and accessibility
 

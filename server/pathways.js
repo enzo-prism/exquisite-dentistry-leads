@@ -57,6 +57,10 @@ export async function loadPathways({ env = process.env, fetcher = fetch, now = D
     report.sources.cherry = { status: 'unavailable', detail: error instanceof Error ? error.message : 'Cherry mailbox could not be read.' }
   }
   })(), (async () => {
+  if (env.ENABLE_VERCEL_ANALYTICS !== 'true') {
+    report.sources.analytics = { status: 'disabled', detail: 'Website reporting uses GA4 and Search Console.' }
+    return
+  }
   try {
     const data = await fetchVercelPathwayCounts({ env, fetcher, now })
     report.analytics = rollupAnalytics(data)
