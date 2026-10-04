@@ -4,8 +4,12 @@ Read README.md for deployment configuration, behavior, privacy boundaries and ve
 
 ## Architecture
 
-- src/App.tsx: authenticated client, memory-only submissions, filters, detail drawer and freshness.
-- src/styles.css: existing brand treatment and responsive layouts.
+- src/App.tsx: authenticated client, memory-only submissions, filters, detail dialog and freshness.
+- src/components/DashboardShell.tsx: authenticated sidebar, section navigation, theme, refresh, and lock controls.
+- src/components/Pathways.tsx: overview, financing, and activity views with preserved filter state.
+- src/components/ui/: shadcn Base UI primitives; src/components/ui.tsx adapts existing inbox controls.
+- src/styles.css: Tailwind 4, Geist typography, evergreen semantic themes, and responsive layouts.
+- src/shadcn.css: vendored shadcn state utilities (MIT).
 - api/login.js, logout.js, session.js: server authentication endpoints.
 - api/leads.js: protected, read-only complete Formspree inbox.
 - api/pathways.js: protected Cherry mailbox notices and Vercel Web Analytics counts for the public website. `PATHWAYS_MODE=synthetic` returns fixture data and does not call either provider.
@@ -31,7 +35,7 @@ Authenticated Formspree UI showed 30 inbox records and 22 spam. One inbox record
 
 ## Submission details interaction
 
-The desktop row is a pointer target with a native name button for keyboard access. Mobile cards include a View details label and a three-line notes preview. The native dialog prevents background interaction, preserves scroll while the same submission refreshes, and keeps its close control visible as long notes scroll. Full notes use pre-wrap and overflow wrapping with no text truncation. Empty notes have an explicit message.
+The desktop row is a pointer target with a native name button for keyboard access. Mobile cards include a View details label and a three-line notes preview. The shadcn Base UI dialog prevents background interaction, contains keyboard focus, supports Escape, and restores focus to the invoking control. Full notes use pre-wrap and overflow wrapping with no text truncation. Empty notes have an explicit message.
 
 `normalize()` combines distinct nonempty message, notes and Message values in provider order, retaining their line breaks and avoiding repeated identical aliases. No extra provider fields or raw payloads are exposed. All data remains behind the existing authenticated, no-store API.
 
@@ -39,7 +43,9 @@ Use the synthetic local server to check desktop row clicks, keyboard activation,
 
 ## Website pathways
 
-The page heading stays the single lowercase `h1`, "leads". The inbox can be limited to the past 7, 30, or 90 days, and filtered by source, form, person type, contact details, and test rows. Column headers sort by name or received time. Active filters appear as removable chips. Cherry notices can be limited to approved or funded rows and sorted by date, amount, or name. Website signals can be limited to Formspree or Vercel and sorted by count or name. Below the Formspree summary, the pathways section covers the last 90 days:
+The sidebar separates Overview, Lead inbox, Cherry financing, and Website activity. Each view has one visible descriptive h1. Inbox filters include past 7, 30, 90 days or all time, source, form, person type, contact availability, and explicit tests. Secondary filters are under More filters. Column headers sort by name or received time, and active filters have removable chips. Cherry filters approved/funded notices and sorts by date, amount, or name. Activity filters Formspree/Vercel and sorts by count or name. Hidden views stay mounted to preserve filters; all private state clears on lock or expired authentication.
+
+Overview distinguishes all-time submissions and the past seven days from rolling 90-day Formspree/Cherry reporting. Analytics uses its actual UTC calendar-day boundaries and explicitly labels the incomplete current day. Missing sources display unavailable values rather than zero. The source panels cover:
 
 - Formspree rows whose received time falls in that window.
 - Cherry widget clicks and on-site apply-button clicks from Vercel Web Analytics on `exquisite-dentistry`.
@@ -49,6 +55,8 @@ The page heading stays the single lowercase `h1`, "leads". The inbox can be limi
 
 Analytics counts include only visitors who granted analytics consent. GA4 `generate_lead` is not shown because older contact page views were counted as leads.
 
-## Dashboard heading
+## Navigation and accessibility
 
-The content heading is a single lowercase `h1` reading "leads" with a bottom rule. No section label, summary paragraph, or brand emblem. The previous "Lead dashboard / Website leads / Real Formspree inbox submissions…" block was removed; its styles were deleted from `src/styles.css`, including the responsive emblem overrides.
+The 256px desktop sidebar collapses to icons. Mobile navigation uses a shadcn Sheet and closes on selection; focus moves to the new section heading. Sidebar controls provide theme switching and explicit lock. The sidebar and private views only mount after authentication. A skip link targets the page heading. The detail dialog preserves full multiline notes.
+
+For design verification, use synthetic data only. Check 320px and 390px layouts, keyboard navigation, dark mode, filter retention, optional report failures, and logout. The October 4 redesign passed its TypeScript/build checks, 42 tests, and dependency audit. Live release verification remains distinct from local synthetic checks.

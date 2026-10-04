@@ -17,6 +17,11 @@ import {
 import { Button, Card, FilterChip, IconButton, Input, ToggleGroup } from './components/ui'
 import { Pathways, type PathwayReport } from './components/Pathways'
 import { filterLeads, leadWindows, sortLeads } from './filters.js'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './components/ui/dialog'
+import { DashboardShell, type DashboardView } from './components/DashboardShell'
+import { NativeSelect, NativeSelectOption } from './components/ui/native-select'
+import { Alert, AlertDescription } from './components/ui/alert'
+import { Card as SummaryCard, CardHeader, CardDescription, CardContent } from './components/ui/card'
 
 type Channel = string
 
@@ -133,7 +138,7 @@ function AccessGate({ theme, onToggleTheme, onUnlock }: { theme: 'light' | 'dark
       </div>
       <form className="access-form" onSubmit={submit}>
         <label htmlFor="access-password">Password</label>
-        <div className="access-input-wrap"><LockKeyhole /><Input ref={inputRef} id="access-password" type="password" value={password} onChange={(event) => { setPassword(event.target.value); if (error) setError('') }} autoComplete="current-password" aria-invalid={Boolean(error)} aria-describedby={error ? 'access-error' : undefined} placeholder="Enter password" /></div>
+        <div className="access-input-wrap"><LockKeyhole /><Input className="h-11 pl-9" ref={inputRef} id="access-password" type="password" value={password} onChange={(event) => { setPassword(event.target.value); if (error) setError('') }} autoComplete="current-password" aria-invalid={Boolean(error)} aria-describedby={error ? 'access-error' : undefined} placeholder="Enter password" /></div>
         {error && <p className="access-error" id="access-error" role="alert">{error}</p>}
         <Button type="submit" disabled={busy}>{busy ? 'Signing in…' : 'Open dashboard'}</Button>
       </form>
@@ -157,6 +162,8 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [fetchedAt, setFetchedAt] = useState('')
+  const [view, setView] = useState<DashboardView>('overview')
+  const [moreFilters, setMoreFilters] = useState(false)
   const [pathways, setPathways] = useState<PathwayReport | null>(null)
   const [loaded, setLoaded] = useState(false)
   const requestVersion = useRef(0)
@@ -175,6 +182,8 @@ function App() {
     setSort('newest')
     setFetchedAt('')
     setPathways(null)
+    setView('overview')
+    setMoreFilters(false)
     setLoaded(false)
     setHasAccess(false)
     setLoading(false)
@@ -236,7 +245,6 @@ function App() {
     } catch { /* Theme preference is optional. */ }
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   })
-  const dialogRef = useRef<HTMLDialogElement>(null)
   const returnFocusRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -253,18 +261,8 @@ function App() {
 
   const closeLead = () => {
     setSelected(null)
-    window.requestAnimationFrame(() => returnFocusRef.current?.focus())
-  }
 
-  const selectedId = selected?.id
-  useEffect(() => {
-    if (!selectedId || !dialogRef.current) return
-    const dialog = dialogRef.current
-    dialog.showModal()
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { dialog.close(); document.body.style.overflow = previousOverflow }
-  }, [selectedId])
+  }
 
   const now = Date.now()
   const filters = useMemo(() => ({ window: windowFilter, source, form: formFilter, person: personFilter, tests: testFilter, contact: contactFilter, query }), [windowFilter, source, formFilter, personFilter, testFilter, contactFilter, query])
@@ -293,48 +291,24 @@ function App() {
   if (!hasAccess) return <><AccessGate theme={theme} onToggleTheme={toggleTheme} onUnlock={async () => { explicitlyLocked.current = false; await refresh() }} />{error && <div className="session-error" role="alert">{error}<Button onClick={() => void refresh()}>Retry connection</Button></div>}</>
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <a className="brand" href="#leads" aria-label="Exquisite Dentistry leads">
-          <img className="brand-wordmark" src="/brand/exquisite-wordmark.png" alt="" aria-hidden="true" />
-          <img className="brand-icon-mobile" src="/brand/exquisite-icon.png" alt="" aria-hidden="true" />
-          <span className="brand-divider" aria-hidden="true" />
-          <span className="brand-product">Leads</span>
-        </a>
-        <div className="top-actions">
-          <IconButton className="topbar-theme" label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={toggleTheme}>
-            {theme === 'light' ? <Moon /> : <Sun />}
-          </IconButton>
-          <IconButton className="topbar-lock" label="Lock dashboard" onClick={lock}><LockKeyhole /></IconButton>
-          <div className="profile"><div className="profile-copy"><strong>Practice Admin</strong><span>Formspree inbox</span></div><div className="avatar"><UserRound /></div></div>
+    <>
+      <DashboardShell view={view} onViewChange={(next) => { closeLead(); setView(next) }} theme={theme} onToggleTheme={toggleTheme} onLock={() => void lock()} loading={loading} onRefresh={() => void refresh()} fetchedAt={fetchedAt} loaded={loaded} submissionCount={leads.length}>
+        {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+        {view === 'overview' && <section className="grid gap-4 sm:grid-cols-3" aria-label="Inbox summary">
+          {[
+            ['All submissions', loaded ? String(leads.length) : '—', 'All time · includes marked tests'],
+            ['Received this week', loaded ? String(recentCount) : '—', 'Submissions in the past 7 days'],
+            ['Marked tests', loaded ? String(markedTestCount) : '—', 'Explicit test flags in the inbox'],
+          ].map(([label,value,detail]) => <SummaryCard key={label} size="sm"><CardHeader><CardDescription>{label}</CardDescription></CardHeader><CardContent><p className="text-3xl font-semibold tracking-tight tabular-nums">{value}</p><p className="mt-2 text-xs text-muted-foreground">{detail}</p></CardContent></SummaryCard>)}
+        </section>}
+        <div hidden={view === 'inbox'}>
+          <Pathways view={view === 'inbox' ? 'overview' : view} report={pathways} loading={loading && !pathways} formCount={loaded ? leads.filter((lead) => { const age = now - timestamp(lead.received); return age >= 0 && age < (pathways?.windowDays ?? 90) * 86400000 }).length : null} />
         </div>
-      </header>
-
-      <main className="content" id="leads">
-        <section className="page-heading">
-          <h1>leads</h1>
-        </section>
-
-        <section className="summary" aria-label="Lead summary">
-          <div><strong>{loaded ? leads.length : '—'}</strong><span>Inbox submissions</span></div>
-          <div><strong>{loaded ? recentCount : '—'}</strong><span>Past 7 days</span></div>
-          <div><strong>{loaded ? markedTestCount : '—'}</strong><span>Marked tests</span></div>
-          <div><strong>{loaded ? topSource : '—'}</strong><span>Top source</span></div>
-          <div className="sample-status"><span className="status-dot" />{loading ? 'Refreshing…' : loaded ? 'Formspree inbox' : 'Unavailable'}</div>
-        </section>
-
-        <Pathways
-          report={pathways}
-          loading={loading && !pathways}
-          formCount={pathways ? leads.filter((lead) => { const age = now - timestamp(lead.received); return age >= 0 && age < pathways.windowDays * 86400000 }).length : null}
-        />
-
-        <div className="data-status" aria-live="polite"><span>{fetchedAt && loaded ? `Updated ${formatReceived(fetchedAt).date}, ${formatReceived(fetchedAt).time} PT` : 'No verified data loaded'}</span><Button disabled={loading} onClick={() => void refresh()}>Refresh</Button></div>
-        {error && <p className="data-error" role="alert">{error}</p>}
+        <div hidden={view !== 'inbox'}>
         <section className="source-overview" aria-label="Lead source attribution">
           <div className="source-overview-title"><span>Attribution</span><strong>Lead sources</strong></div>
           <div className="source-overview-list">
-            {channels.map((channel) => <button
+            {channels.map((channel) => <Button variant="outline"
               className="source-filter"
               data-active={source === channel}
               key={channel}
@@ -344,7 +318,7 @@ function App() {
             >
               <SourceLogo channel={channel} theme={theme} />
               <span><strong>{channel}</strong><small>{sourceCounts.get(channel)} submissions</small></span>
-            </button>)}
+            </Button>)}
           </div>
         </section>
 
@@ -352,17 +326,20 @@ function App() {
           <div className="table-heading">
             <div><h2>Inbox submissions</h2><p>{loaded ? `${filtered.length} of ${leads.length} shown` : 'Unavailable'}</p></div>
             <div className="filters">
-              <label className="search-box"><Search /><span className="sr-only">Search name, contact, or notes</span><Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, contact, notes" /></label>
+              <label className="search-box"><Search /><span className="sr-only">Search name, contact, or notes</span><Input className="h-10 pl-9" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, contact, notes" /></label>
               <ToggleGroup label="Received" value={windowFilter} options={leadWindows} onChange={setWindowFilter} />
-              <label className="select-wrap"><SlidersHorizontal /><span className="sr-only">Filter by source</span><select value={source} onChange={(event) => setSource(event.target.value)}><option value="all">All sources</option>{channels.map((item) => <option key={item} value={item}>{item}</option>)}</select><ChevronDown /></label>
-              <label className="select-wrap"><span className="sr-only">Filter by form</span><select value={formFilter} onChange={(event) => setFormFilter(event.target.value)}><option value="">All forms</option>{formTypes.map((item) => <option key={item} value={item}>{formLabel(item)}</option>)}</select><ChevronDown /></label>
-              <label className="select-wrap"><span className="sr-only">Filter by person type</span><select value={personFilter} onChange={(event) => setPersonFilter(event.target.value)}><option value="">All person types</option>{personTypes.map((item) => <option key={item} value={item}>{personLabel(item)}</option>)}</select><ChevronDown /></label>
-              <label className="select-wrap"><span className="sr-only">Filter by contact details</span><select value={contactFilter} onChange={(event) => setContactFilter(event.target.value)}><option value="any">Any contact</option><option value="phone">Has phone</option><option value="email">Has email</option><option value="missing">Missing contact</option></select><ChevronDown /></label>
-              <label className="select-wrap"><span className="sr-only">Filter marked tests</span><select value={testFilter} onChange={(event) => setTestFilter(event.target.value)}><option value="all">All submissions</option><option value="exclude">Hide tests</option><option value="only">Tests only</option></select><ChevronDown /></label>
-              <label className="select-wrap sort-wrap"><ArrowDownUp /><span className="sr-only">Sort leads</span><select value={sort} onChange={(event) => setSort(event.target.value)}><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="name-asc">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="form">Form</option></select><ChevronDown /></label>
+              <label className="select-wrap"><SlidersHorizontal /><span className="sr-only">Filter by source</span><NativeSelect value={source} onChange={(event) => setSource(event.target.value)}><NativeSelectOption value="all">All sources</NativeSelectOption>{channels.map((item) => <NativeSelectOption key={item} value={item}>{item}</NativeSelectOption>)}</NativeSelect></label>
+              <Button variant="outline" aria-expanded={moreFilters} aria-controls="inbox-more-filters" onClick={() => setMoreFilters(value => !value)}><SlidersHorizontal />More filters</Button>
+              <label className="select-wrap sort-wrap"><ArrowDownUp /><span className="sr-only">Sort leads</span><NativeSelect value={sort} onChange={(event) => setSort(event.target.value)}><NativeSelectOption value="newest">Newest first</NativeSelectOption><NativeSelectOption value="oldest">Oldest first</NativeSelectOption><NativeSelectOption value="name-asc">Name A–Z</NativeSelectOption><NativeSelectOption value="name-desc">Name Z–A</NativeSelectOption><NativeSelectOption value="form">Form</NativeSelectOption></NativeSelect></label>
             </div>
           </div>
-          {filtersActive && <div className="filter-chips" aria-label="Active filters">
+          <div id="inbox-more-filters" className="inbox-filter-more" hidden={!moreFilters}>
+              <label ><span >Filter by form</span><NativeSelect value={formFilter} onChange={(event) => setFormFilter(event.target.value)}><NativeSelectOption value="">All forms</NativeSelectOption>{formTypes.map((item) => <NativeSelectOption key={item} value={item}>{formLabel(item)}</NativeSelectOption>)}</NativeSelect></label>
+              <label ><span >Filter by person type</span><NativeSelect value={personFilter} onChange={(event) => setPersonFilter(event.target.value)}><NativeSelectOption value="">All person types</NativeSelectOption>{personTypes.map((item) => <NativeSelectOption key={item} value={item}>{personLabel(item)}</NativeSelectOption>)}</NativeSelect></label>
+              <label ><span >Filter by contact details</span><NativeSelect value={contactFilter} onChange={(event) => setContactFilter(event.target.value)}><NativeSelectOption value="any">Any contact</NativeSelectOption><NativeSelectOption value="phone">Has phone</NativeSelectOption><NativeSelectOption value="email">Has email</NativeSelectOption><NativeSelectOption value="missing">Missing contact</NativeSelectOption></NativeSelect></label>
+              <label ><span >Filter marked tests</span><NativeSelect value={testFilter} onChange={(event) => setTestFilter(event.target.value)}><NativeSelectOption value="all">All submissions</NativeSelectOption><NativeSelectOption value="exclude">Hide tests</NativeSelectOption><NativeSelectOption value="only">Tests only</NativeSelectOption></NativeSelect></label>
+          </div>
+          {filtersActive && <div className="filter-chips" role="group" aria-label="Active filters">
             {windowFilter !== 'all' && <FilterChip label={leadWindows.find((item) => item.id === windowFilter)?.label || windowFilter} onRemove={() => setWindowFilter('all')} />}
             {source !== 'all' && <FilterChip label={source} onRemove={() => setSource('all')} />}
             {formFilter && <FilterChip label={formLabel(formFilter)} onRemove={() => setFormFilter('')} />}
@@ -406,24 +383,12 @@ function App() {
           </> : <div className="empty-state"><div className="empty-icon"><Search /></div><h3>{!loaded ? 'Submissions unavailable' : leads.length ? 'No matching submissions' : 'No inbox submissions'}</h3><p>{!loaded ? 'Refresh to load verified data.' : leads.length ? 'Clear a filter or try another search.' : 'The Formspree inbox is empty.'}</p>{filtersActive && <Button onClick={resetFilters}>Clear filters</Button>}</div>}
         </Card>
         <p className="privacy-note">Inbox records are raw submissions, not verified patients or qualified leads. Spam and Simplifeye bookings are excluded. Times shown in Pacific time.</p>
-      </main>
+        </div>
+      </DashboardShell>
 
-      {selected && <dialog ref={dialogRef} className="detail-sheet" aria-labelledby="lead-detail-title"
-        onCancel={(event) => { event.preventDefault(); closeLead() }}
-        onKeyDown={(event) => {
-          if (event.key !== 'Tab') return
-          const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]), a[href]'))
-          const first = items[0], last = items[items.length - 1]
-          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
-          if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
-        }}
-        onClick={(event) => {
-          if (event.target !== event.currentTarget) return
-          const rect = event.currentTarget.getBoundingClientRect()
-          if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeLead()
-        }}>
-
-          <div className="sheet-header"><div><span className="sheet-kicker">Submission details</span><h2 id="lead-detail-title">{selected.name || 'Name not provided'}</h2></div><IconButton label="Close lead details" onClick={closeLead}><X /></IconButton></div>
+      <Dialog open={Boolean(selected)} onOpenChange={(open) => { if (!open) closeLead() }}>
+        {selected && <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-xl" finalFocus={() => returnFocusRef.current}>
+          <DialogHeader><DialogTitle>{selected.name || 'Name not provided'}</DialogTitle><DialogDescription>Full submission details · Pacific time</DialogDescription></DialogHeader>
           <SourceBadge lead={selected} theme={theme} />
           <div className="detail-list">
             <div><span className="detail-icon"><Mail /></span><div><span>Email</span><strong>{selected.email || 'Not provided'}</strong></div></div>
@@ -433,8 +398,9 @@ function App() {
           <section className="notes-panel" aria-labelledby="notes-heading"><h3 id="notes-heading">Full notes</h3><p>{selected.notes || 'No message or notes were provided with this submission.'}</p></section>
           <div className="submission-context"><p>Interested in: {selected.interest || 'Not provided'}</p><p>Form: {formLabel(selected.formType)}</p><p>Person type: {personLabel(selected.personType)}</p><p>{selected.isTest ? 'Flagged as a test submission' : 'No test flag provided'}</p><p>Reported source: {selected.source || 'Not provided'}</p><p>Page: {selected.pageUrl || 'Not provided'}</p><p>Referrer: {selected.referrer || 'Not provided'}</p></div>
           <p className="sheet-footnote">Qualification and follow-up status have not been verified.</p>
-        </dialog>}
-    </div>
+        </DialogContent>}
+      </Dialog>
+    </>
   )
 }
 

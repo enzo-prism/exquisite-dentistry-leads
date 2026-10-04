@@ -8,6 +8,10 @@ Deploy to the existing exquisite-dentistry-leads Vercel project. Verify authenti
 
 ## Behavior
 
+- Responsive shadcn sidebar: Overview, Lead inbox, Cherry financing, and Website activity. Desktop collapses to icons; mobile uses a keyboard-accessible drawer.
+- Inbox and pathway filters persist between sections; More filters exposes secondary inbox controls.
+- Semantic light/dark colors, Geist typography, and shadcn Base UI cards, fields, tables, and dialogs.
+
 - Server-validated shared-password sign-in; four-hour signed HttpOnly, Secure, SameSite=Strict cookie.
 - Formspree data fetched only after authentication; responses are non-cacheable.
 - Click any desktop submission row or mobile card to open submission details; the name button also supports keyboard access.
@@ -42,7 +46,7 @@ On 21 Sep 2026 the production `DASHBOARD_PASSWORD` was set to `exquisite` and th
 
 ## Verification
 
-Use Node.js 24 in Vercel. This change was also built/tested on the local Node.js 22.23.1 runtime.
+Use Node.js 24 in Vercel. The sidebar release was built and tested on Node.js 24.
 
 ```bash
 npm ci
@@ -74,3 +78,9 @@ Cherry mailbox reads now paginate completely, validate responses, normalize rece
 Provider UTC-day coverage is disclosed separately from rolling-window inbox and financing totals. A pathway check timestamp is an attempted source read; each source status still determines whether its values are available.
 
 The October 4 release was approved and published. Production returned an analytics access denial; replacing the credential with a dedicated team-scoped token restored access. Project-scoped tokens returned 404 for the analytics endpoint and were not retained. The replacement token is stored only in the production server environment and expires October 4, 2027; renew it before then. Other environments and existing shared credentials were unchanged. Live readback verified 35 inbox submissions, 14 Cherry approvals ($124,800), 10 funded plans ($39,453.50), 94 Cherry clicks, 37 scheduling clicks, 63 scheduling page views, and 13 phone clicks. Both pathway source statuses returned ok. Desktop and 390px viewport checks passed. The original token's underlying access-denial cause was not independently established.
+
+## October 4 sidebar release
+
+The sidebar redesign is approved for main and production. Its four views retain existing source calculations, authenticated APIs, and in-memory private state. A fresh install, production build, and all 42 tests passed. Dependency audit returned zero vulnerabilities. Synthetic browser checks covered filter persistence, full notes, optional-report failure isolation, mobile navigation, and logout/API denial. Axe reported zero violations in all four desktop views, including the dark inbox. Production verification must follow deployment; local results alone do not establish live health.
+
+Generated shadcn components are source-owned under `src/components/ui`. Shared Tailwind utilities are vendored in `src/shadcn.css` with their MIT license in `licenses/shadcn-MIT.txt`; the generation CLI is not an application dependency. Use `npx shadcn@latest` for future additions and review its diff before overwriting components.

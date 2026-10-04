@@ -1,56 +1,32 @@
-import { forwardRef } from 'react'
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
+import { Button as PrimitiveButton } from './ui/button'
+import { Input as PrimitiveInput } from './ui/input'
+import { Card as PrimitiveCard } from './ui/card'
+import { Badge as PrimitiveBadge } from './ui/badge'
+import { ToggleGroup as PrimitiveToggleGroup, ToggleGroupItem } from './ui/toggle-group'
+import { cn } from '@/lib/utils'
 
-export function Button({ className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button data-slot="button" className={`button ${className}`} {...props} />
+export function Button({ className, ...props }: ComponentProps<typeof PrimitiveButton>) {
+  return <PrimitiveButton className={cn('button', className)} {...props} />
 }
-
-export function IconButton({ label, children, className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { label: string; children: ReactNode }) {
-  return <button data-slot="button" className={`icon-button ${className}`} aria-label={label} title={label} {...props}>{children}</button>
+export function IconButton({ label, children, className, ...props }: ComponentProps<typeof PrimitiveButton> & { label: string; children: ReactNode }) {
+  return <PrimitiveButton variant="ghost" size="icon" className={cn('icon-button', className)} aria-label={label} title={label} {...props}>{children}</PrimitiveButton>
 }
-
-export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className = '', ...props }, ref) {
-  return <input ref={ref} data-slot="input" className={`input ${className}`} {...props} />
-})
-
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section data-slot="card" className={`card ${className}`}>{children}</section>
+export function Input({ className, ...props }: ComponentProps<typeof PrimitiveInput>) {
+  return <PrimitiveInput className={cn('input', className)} {...props} />
 }
-
-export function Badge({ children, tone = 'neutral' }: { children: ReactNode; tone?: string }) {
-  return <span data-slot="badge" className={`badge badge-${tone}`}>{children}</span>
+export function Card({ children, className }: { children: ReactNode; className?: string }) {
+  return <PrimitiveCard className={cn('card', className)}>{children}</PrimitiveCard>
 }
-
-export function Table({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div data-slot="table-container" className="table-scroll"><table data-slot="table" className={className}>{children}</table></div>
+export function Badge({ children }: { children: ReactNode; tone?: string }) {
+  return <PrimitiveBadge variant="outline">{children}</PrimitiveBadge>
 }
-
-export function TableHeader({ children }: { children: ReactNode }) {
-  return <thead data-slot="table-header">{children}</thead>
-}
-
-export function TableBody({ children }: { children: ReactNode }) {
-  return <tbody data-slot="table-body">{children}</tbody>
-}
-
-export function TableRow({ children }: { children: ReactNode }) {
-  return <tr data-slot="table-row">{children}</tr>
-}
-
-export function TableHead({ children }: { children: ReactNode }) {
-  return <th data-slot="table-head">{children}</th>
-}
-
-export function TableCell({ children }: { children: ReactNode }) {
-  return <td data-slot="table-cell">{children}</td>
-}
-
+export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './ui/table'
 export function ToggleGroup({ label, value, options, onChange }: { label: string; value: string; options: { id: string; label: string }[]; onChange: (id: string) => void }) {
-  return <div className="toggle-group" role="group" aria-label={label}>
-    {options.map((option) => <button key={option.id} type="button" data-state={value === option.id ? 'on' : 'off'} aria-pressed={value === option.id} onClick={() => onChange(option.id)}>{option.label}</button>)}
-  </div>
+  return <PrimitiveToggleGroup variant="outline" aria-label={label} value={[value]} onValueChange={values => { if(values[0]) onChange(values[0]) }}>
+    {options.map(option => <ToggleGroupItem key={option.id} value={option.id}>{option.label}</ToggleGroupItem>)}
+  </PrimitiveToggleGroup>
 }
-
 export function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
-  return <button type="button" className="filter-chip" data-slot="badge" onClick={onRemove}>{label}<span aria-hidden="true">×</span><span className="sr-only">Remove {label} filter</span></button>
+  return <PrimitiveButton variant="secondary" size="sm" onClick={onRemove}>{label}<span aria-hidden="true">×</span><span className="sr-only">Remove {label} filter</span></PrimitiveButton>
 }
