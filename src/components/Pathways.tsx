@@ -6,8 +6,9 @@ export type CherryRow = { id: string; date: string; kind: 'approved' | 'issued';
 export type PathwayReport = {
   windowDays: number
   fetchedAt: string
+  analyticsWindow?: { startTime: string; endTime: string } | null
   sources: { cherry: { status: string; detail: string }; analytics: { status: string; detail: string } }
-  cherry: { approvedCount: number; approvedAmount: number; issuedCount: number; issuedAmount: number; rows: CherryRow[] }
+  cherry: { approvedCount: number; approvedAmount: number; approvedAmountMissingCount?: number; issuedCount: number; issuedAmount: number; issuedAmountMissingCount?: number; rows: CherryRow[] }
   analytics: { widgetClicks: number; applyClicks: number; sectionViews: number; widgetReady: number; scheduleClicks: number; phoneClicks: number; trackedSubmits: number; schedulePageViews: number }
 }
 
@@ -28,13 +29,23 @@ export function Pathways({ report, formCount, loading }: { report: PathwayReport
   const analyticsReady = report?.sources.analytics.status === 'ok' || report?.sources.analytics.status === 'synthetic'
   const cherryReady = report?.sources.cherry.status === 'ok' || report?.sources.cherry.status === 'synthetic'
   const analytics = report?.analytics
+  const approvedMissing = report?.cherry.approvedAmountMissingCount ?? 0
+  const issuedMissing = report?.cherry.issuedAmountMissingCount ?? 0
+  const unavailable = loading ? 'Checking website pathways…' : 'Website pathways could not be refreshed. Please retry.'
+  const checkedDate = report?.fetchedAt ? new Date(report.fetchedAt) : null
+  const checkedAt = checkedDate && Number.isFinite(checkedDate.getTime()) ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles', timeZoneName: 'short' }).format(checkedDate) : null
+  const windowStart = Date.parse(report?.analyticsWindow?.startTime || '')
+  const windowEnd = Date.parse(report?.analyticsWindow?.endTime || '')
+  const utcDate = (value: number) => new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(value)
+  const analyticsWindow = analyticsReady && Number.isFinite(windowStart) && Number.isFinite(windowEnd) && windowEnd > windowStart
+    ? `Website analytics use UTC calendar days, ${utcDate(windowStart)} through ${utcDate(windowEnd - 1)}, with the current day incomplete. Inbox and financing use the rolling ${report?.windowDays ?? 90}-day window.` : null
   const cherryClicks = (analytics?.widgetClicks || 0) + (analytics?.applyClicks || 0)
   const cards = [
     ['Form inbox', formCount == null ? '—' : String(formCount), 'Formspree submissions in this window'],
-    ['Cherry clicks', count(cherryClicks, analyticsReady), `${analytics?.widgetClicks ?? 0} widget · ${analytics?.applyClicks ?? 0} apply buttons`],
-    ['Cherry approved', cherryReady ? `${report?.cherry.approvedCount} · ${usd(report?.cherry.approvedAmount ?? 0)}` : '—', 'Credit approved, not money received'],
-    ['Cherry funded', cherryReady ? `${report?.cherry.issuedCount} · ${usd(report?.cherry.issuedAmount ?? 0)}` : '—', 'Financed purchase amount'],
-    ['Schedule clicks', count(analytics?.scheduleClicks, analyticsReady), `${analytics?.schedulePageViews ?? 0} scheduler page views`],
+    ['Cherry clicks', count(cherryClicks, analyticsReady), `${count(analytics?.widgetClicks, analyticsReady)} widget · ${count(analytics?.applyClicks, analyticsReady)} apply buttons`],
+    ['Cherry approved', cherryReady ? `${report?.cherry.approvedCount} · ${usd(report?.cherry.approvedAmount ?? 0)}` : '—', approvedMissing > 0 ? 'Known subtotal of approved credit' : 'Credit approved, not money received'],
+    ['Cherry funded', cherryReady ? `${report?.cherry.issuedCount} · ${usd(report?.cherry.issuedAmount ?? 0)}` : '—', issuedMissing > 0 ? 'Known subtotal of financed purchases' : 'Financed purchase amount'],
+    ['Schedule clicks', count(analytics?.scheduleClicks, analyticsReady), `${count(analytics?.schedulePageViews, analyticsReady)} scheduler page views`],
     ['Phone clicks', count(analytics?.phoneClicks, analyticsReady), 'Click to call, not a connected call'],
   ]
   const signals = [
@@ -50,11 +61,13 @@ export function Pathways({ report, formCount, loading }: { report: PathwayReport
   const signalRows = useMemo(() => sortSignals(filterSignals(signals, signalSource), signalSort), [signals, signalSource, signalSort])
   return <section className="pathways" aria-label="Website pathways">
     <div className="source-overview-title"><span>Last {report?.windowDays ?? 90} days</span><strong>How people reach the practice</strong></div>
+    <p className="pathway-footnote" aria-live="polite">{checkedAt ? `Pathways checked ${checkedAt}.` : report ? 'Pathways check time unavailable.' : unavailable}</p>
+    {analyticsWindow && <p className="pathway-footnote">{analyticsWindow}</p>}
     <div className="pathway-grid">
       {cards.map(([label, value, detail]) => <Card key={label} className="pathway-stat"><span>{label}</span><strong>{value}</strong><small>{detail}</small></Card>)}
     </div>
     <Card className="leads-card pathway-card">
-      <div className="table-heading"><div><h2>Cherry financing</h2><p>{cherryReady ? `${cherryRows.length} of ${report?.cherry.rows.length} notices` : report?.sources.cherry.detail}</p></div>
+      <div className="table-heading"><div><h2>Cherry financing</h2><p>{cherryReady ? `${cherryRows.length} of ${report?.cherry.rows.length} notices` : report?.sources.cherry.detail || unavailable}</p></div>
         <div className="filters">
           <label className="search-box"><span className="sr-only">Search Cherry notices</span><input className="input" value={cherryQuery} onChange={(event) => setCherryQuery(event.target.value)} placeholder="Search applicant or plan" /></label>
           <ToggleGroup label="Cherry status" value={cherryStatus} options={[{ id: 'all', label: 'All' }, { id: 'approved', label: 'Approved' }, { id: 'issued', label: 'Funded' }]} onChange={setCherryStatus} />
@@ -78,10 +91,10 @@ export function Pathways({ report, formCount, loading }: { report: PathwayReport
           <TableCell>{row.planId || '—'}</TableCell>
         </TableRow>)}</TableBody>
       </Table> : <p className="pathway-empty">{cherryReady ? (report?.cherry.rows.length ? 'No notices match these filters.' : 'No Cherry approval or funded-plan notices in this window.') : 'Cherry notices appear here when the mailbox connection is configured.'}</p>}
-      <p className="pathway-footnote">Approved dollars are a financing limit. Funded dollars are the Cherry purchase amount. Neither figure is collected production, and unfinished applications are not emailed.</p>
+      <p className="pathway-footnote">Approved dollars are a financing limit. Funded dollars are the Cherry purchase amount. Neither figure is collected production, and unfinished applications are not emailed.{cherryReady && (approvedMissing > 0 || issuedMissing > 0) ? ` Amounts are known subtotals: ${approvedMissing} approval notices and ${issuedMissing} funded-plan notices have unavailable amounts.` : ''}</p>
     </Card>
     <Card className="leads-card pathway-card">
-      <div className="table-heading"><div><h2>Website signals</h2><p>{analyticsReady ? report?.sources.analytics.detail : report?.sources.analytics.detail || 'Loading website signals…'}</p></div>
+      <div className="table-heading"><div><h2>Website signals</h2><p>{report?.sources.analytics.detail || unavailable}</p></div>
         <div className="filters">
           <ToggleGroup label="Signal source" value={signalSource} options={[{ id: 'all', label: 'All sources' }, { id: 'Formspree', label: 'Formspree' }, { id: 'Vercel Analytics', label: 'Vercel' }]} onChange={setSignalSource} />
           <label className="select-wrap sort-wrap"><span className="sr-only">Sort website signals</span><select value={signalSort} onChange={(event) => setSignalSort(event.target.value)}><option value="count-desc">Highest count</option><option value="count-asc">Lowest count</option><option value="name">Name</option></select></label>
@@ -101,7 +114,7 @@ export function Pathways({ report, formCount, loading }: { report: PathwayReport
           <TableCell>{row.source}</TableCell>
         </TableRow>)}</TableBody>
       </Table>
-      <p className="pathway-footnote">Widget-ready events ({analytics?.widgetReady ?? '—'}) mean the Cherry script loaded. They are not applications. GA4 generate_lead is not used here because older contact page views were counted as leads.</p>
+      <p className="pathway-footnote">Widget-ready events ({count(analytics?.widgetReady, analyticsReady)}) mean the Cherry script loaded. They are not applications. GA4 generate_lead is not used here because older contact page views were counted as leads.</p>
     </Card>
   </section>
 }

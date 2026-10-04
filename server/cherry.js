@@ -8,7 +8,7 @@ export function parseCherryNotice({ id = '', date = '', subject = '', body = '' 
   if (approved && /exquisite/i.test(subject)) {
     return { id, date, kind: 'approved', applicant: approved[1].trim(), amount: money(approved[2]), planId: '' }
   }
-  if (!/successfully issued/i.test(subject)) return null
+  if (!/successfully issued/i.test(subject) || !/\bExquisite Dentistry\b/i.test(`${subject}\n${body}`)) return null
   const amount = String(body).match(/Purchase Amount\s*[:\-]?\s*\$?\s*([0-9][0-9,]*(?:\.\d{2})?)/i)
   const plan = String(body).match(/Payment Plan ID\s*[:\-]?\s*([A-Za-z0-9-]+)/i)
   const name = String(body).match(/(?:^|\n)\s*Name\s*[:\-]\s*([^\n]+)/i)
@@ -25,14 +25,16 @@ export function parseCherryNotice({ id = '', date = '', subject = '', body = '' 
 const sum = (rows) => Math.round(rows.reduce((total, row) => total + (row.amount || 0), 0) * 100) / 100
 
 export function summarizeCherry(notices) {
-  const rows = [...notices].sort((a, b) => String(b.date).localeCompare(String(a.date)))
+  const rows = [...notices].sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0))
   const approved = rows.filter((row) => row.kind === 'approved')
   const issued = rows.filter((row) => row.kind === 'issued')
   return {
     approvedCount: approved.length,
     approvedAmount: sum(approved),
+    approvedAmountMissingCount: approved.filter((row) => row.amount == null).length,
     issuedCount: issued.length,
     issuedAmount: sum(issued),
+    issuedAmountMissingCount: issued.filter((row) => row.amount == null).length,
     rows,
   }
 }

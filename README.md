@@ -66,3 +66,11 @@ This provides a shared practice login, not individual staff accounts, roles or a
 - Repository: https://github.com/enzo-prism/exquisite-dentistry-leads
 - Formspree submissions API: https://help.formspree.io/articles/the-forms-api/form-submissions-api
 - Authentication: https://help.formspree.io/articles/the-forms-api/api-authentication
+
+## October 4 freshness hardening (pending production release)
+
+Cherry mailbox reads now paginate completely, validate responses, normalize received timestamps, and apply an exact rolling 90-day window. Funded notices must identify Exquisite Dentistry; unknown amounts are disclosed as missing from known subtotals. Website analytics validate response shape and counts, fail on group saturation, and return their actual UTC-calendar-day query window. Both providers have bounded parallel reads. A pathways failure cannot discard a healthy lead inbox, and unavailable analytics never render zero-valued detail labels.
+
+Provider UTC-day coverage is disclosed separately from rolling-window inbox and financing totals. A pathway check timestamp is an attempted source read; each source status still determines whether its values are available.
+
+The October 4 audit found production analytics unavailable while the authenticated Vercel CLI could read the website's metrics. The existing credential could not be inspected, so its exact failure cause is unresolved. Publication and any external credential changes still require explicit approval. After approval, deploy the prepared changes, inspect the improved production error if needed, repair the analytics access configuration, and reconcile authenticated results against each provider before declaring the dashboard fully current.

@@ -48,6 +48,7 @@ export async function loadPathways({ env = process.env, fetcher = fetch, now = D
     cherry: summarizeCherry([]),
     analytics: rollupAnalytics({}),
   }
+  await Promise.all([(async () => {
   try {
     const notices = (await fetchCherryNotices({ env, fetcher, now })).map(parseCherryNotice).filter(Boolean)
     report.cherry = summarizeCherry(notices)
@@ -55,11 +56,15 @@ export async function loadPathways({ env = process.env, fetcher = fetch, now = D
   } catch (error) {
     report.sources.cherry = { status: 'unavailable', detail: error instanceof Error ? error.message : 'Cherry mailbox could not be read.' }
   }
+  })(), (async () => {
   try {
-    report.analytics = rollupAnalytics(await fetchVercelPathwayCounts({ env, fetcher, now }))
+    const data = await fetchVercelPathwayCounts({ env, fetcher, now })
+    report.analytics = rollupAnalytics(data)
+    report.analyticsWindow = data.window
     report.sources.analytics = { status: 'ok', detail: 'Vercel Web Analytics on exquisitedentistryla.com, after analytics consent.' }
   } catch (error) {
     report.sources.analytics = { status: 'unavailable', detail: error instanceof Error ? error.message : 'Website analytics could not be read.' }
   }
+  })()])
   return report
 }

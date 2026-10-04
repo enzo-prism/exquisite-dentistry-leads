@@ -184,18 +184,28 @@ function App() {
     setLoading(true)
     setError('')
     try {
-      const [response, pathwayResponse] = await Promise.all([
+      const [leadResult, pathwayResult] = await Promise.allSettled([
         fetch('/api/leads', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(20_000) }),
         fetch('/api/pathways', { credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(20_000) }),
       ])
       if (version !== requestVersion.current) return
-      if (response.status === 401 || pathwayResponse.status === 401) { clearPrivateData(); return }
+      const response = leadResult.status === 'fulfilled' ? leadResult.value : null
+      const pathwayResponse = pathwayResult.status === 'fulfilled' ? pathwayResult.value : null
+      if (response?.status === 401 || pathwayResponse?.status === 401) { clearPrivateData(); return }
+      if (!response) throw new Error('Submissions could not be refreshed. Please retry.')
       if (!response.ok) throw new Error('Submissions could not be refreshed. Please retry.')
       const data = await response.json()
-      if (pathwayResponse.ok) setPathways(await pathwayResponse.json())
-      else setPathways(null)
+      // Pathway providers are optional: an outage must not discard a healthy inbox.
+      let pathwayData = pathwayResponse?.ok ? await pathwayResponse.json().catch(() => null) : null
+      if (pathwayData && (!Number.isFinite(pathwayData.windowDays) || pathwayData.windowDays <= 0 ||
+        !['cherry', 'analytics'].every(key => typeof pathwayData.sources?.[key]?.status === 'string' && typeof pathwayData.sources?.[key]?.detail === 'string') ||
+        !Array.isArray(pathwayData.cherry?.rows) || !pathwayData.analytics ||
+        !pathwayData.cherry.rows.every((row: Record<string, unknown> | null) => row && ['id', 'date', 'kind', 'applicant', 'planId'].every(key => typeof row[key] === 'string') && (row.amount === null || typeof row.amount === 'number')))) {
+        pathwayData = null
+      }
       if (version !== requestVersion.current) return
       if (!Array.isArray(data.leads)) throw new Error('Unexpected data response. Please retry.')
+      setPathways(pathwayData)
       setLeads(data.leads)
       setFetchedAt(data.meta?.fetchedAt || '')
       setLoaded(true)

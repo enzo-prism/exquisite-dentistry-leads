@@ -62,3 +62,22 @@ test('pathway endpoint stays private and synthetic mode does not call providers'
   assert.equal(report.cherry.approvedAmount, 10000)
   assert.equal(report.analytics.widgetClicks, 85)
 })
+
+
+test('funded notices must identify Exquisite and disclose unknown amounts', () => {
+  assert.equal(parseCherryNotice({ subject: 'LN-OTHER was successfully issued', body: 'Dear Other Dentistry,\nPurchase Amount: $500' }), null)
+  assert.equal(parseCherryNotice({ subject: 'LN-UNKNOWN was successfully issued', body: 'Purchase Amount: $500' }), null)
+  const unknown = parseCherryNotice({ id: 'missing', date: '2026-10-01T12:00:00Z', subject: 'LN-MISSING was successfully issued', body: 'Dear Exquisite Dentistry,\nPayment Plan ID: LN-MISSING' })
+  assert.equal(unknown.amount, null)
+  const report = summarizeCherry([unknown])
+  assert.equal(report.issuedCount, 1)
+  assert.equal(report.issuedAmountMissingCount, 1)
+})
+
+test('Cherry notices sort by chronological date across RFC weekday names', () => {
+  const rows = summarizeCherry([
+    { id: 'older', date: 'Wed, 30 Sep 2026 19:57:09 +0000 (UTC)', kind: 'issued', amount: 1 },
+    { id: 'newer', date: 'Thu, 1 Oct 2026 22:22:43 +0000 (UTC)', kind: 'approved', amount: 2 },
+  ]).rows
+  assert.deepEqual(rows.map(row => row.id), ['newer', 'older'])
+})
