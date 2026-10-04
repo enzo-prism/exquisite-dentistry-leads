@@ -9,7 +9,7 @@ Deploy to the existing exquisite-dentistry-leads Vercel project. Verify authenti
 ## Behavior
 
 - Responsive shadcn sidebar: Overview, Lead inbox, Cherry financing, and Website activity. Desktop collapses to icons; mobile uses a keyboard-accessible drawer.
-- Inbox and pathway filters persist between sections; More filters exposes secondary inbox controls.
+- Inbox and pathway filters persist between sections; Filters opens an accessible dialog for source, form, person type, contact availability, tests, and sorting.
 - Semantic light/dark colors, Geist typography, and shadcn Base UI cards, fields, tables, and dialogs.
 
 - Server-validated shared-password sign-in; four-hour signed HttpOnly, Secure, SameSite=Strict cookie.
@@ -84,3 +84,7 @@ The October 4 release was approved and published. Production returned an analyti
 The sidebar redesign is approved for main and production. Its four views retain existing source calculations, authenticated APIs, and in-memory private state. A fresh install, production build, and all 42 tests passed. Dependency audit returned zero vulnerabilities. Synthetic browser checks covered filter persistence, full notes, optional-report failure isolation, mobile navigation, and logout/API denial. Axe reported zero violations in all four desktop views, including the dark inbox. Production verification must follow deployment; local results alone do not establish live health.
 
 Generated shadcn components are source-owned under `src/components/ui`. Shared Tailwind utilities are vendored in `src/shadcn.css` with their MIT license in `licenses/shadcn-MIT.txt`; the generation CLI is not an application dependency. Use `npx shadcn@latest` for future additions and review its diff before overwriting components.
+
+## Spacious workspace refresh
+
+The dashboard uses a quiet, spacious layout with consistent Lucide icons. Overview has one inbox summary strip and four focused metrics. The inbox surface shows names, sources, received dates, and explicit test badges; opening a record reveals full contact information, notes, campaign, and submitted context. Metric explanations, freshness, methodology, and source health are available through labeled dialogs. Unavailable sources and partial subtotals remain visible. Desktop/mobile, dialog interaction, filter retention, dark mode, and accessibility were checked with synthetic records before release.

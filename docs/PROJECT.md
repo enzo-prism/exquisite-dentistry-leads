@@ -35,7 +35,7 @@ Authenticated Formspree UI showed 30 inbox records and 22 spam. One inbox record
 
 ## Submission details interaction
 
-The desktop row is a pointer target with a native name button for keyboard access. Mobile cards include a View details label and a three-line notes preview. The shadcn Base UI dialog prevents background interaction, contains keyboard focus, supports Escape, and restores focus to the invoking control. Full notes use pre-wrap and overflow wrapping with no text truncation. Empty notes have an explicit message.
+The desktop row is a pointer target with a native name button for keyboard access. Mobile cards show the name, source, received date, and explicit test badge. A chevron indicates access to full details. The shadcn Base UI dialog prevents background interaction, contains keyboard focus, supports Escape, and restores focus to the invoking control. Full notes use pre-wrap and overflow wrapping with no text truncation. Empty notes have an explicit message.
 
 `normalize()` combines distinct nonempty message, notes and Message values in provider order, retaining their line breaks and avoiding repeated identical aliases. No extra provider fields or raw payloads are exposed. All data remains behind the existing authenticated, no-store API.
 
@@ -43,7 +43,7 @@ Use the synthetic local server to check desktop row clicks, keyboard activation,
 
 ## Website pathways
 
-The sidebar separates Overview, Lead inbox, Cherry financing, and Website activity. Each view has one visible descriptive h1. Inbox filters include past 7, 30, 90 days or all time, source, form, person type, contact availability, and explicit tests. Secondary filters are under More filters. Column headers sort by name or received time, and active filters have removable chips. Cherry filters approved/funded notices and sorts by date, amount, or name. Activity filters Formspree/Vercel and sorts by count or name. Hidden views stay mounted to preserve filters; all private state clears on lock or expired authentication.
+The sidebar separates Overview, Lead inbox, Cherry financing, and Website activity. Each view has one visible descriptive h1. Inbox filters include past 7, 30, 90 days or all time, source, form, person type, contact availability, and explicit tests. Advanced filters and sorting live in the Filters dialog; the received window and search stay on the surface. Column headers sort by name or received time, and active filters have removable chips. Cherry filters approved/funded notices and sorts by date, amount, or name. Activity filters Formspree/Vercel and sorts by count or name. Hidden views stay mounted to preserve filters; all private state clears on lock or expired authentication.
 
 Overview distinguishes all-time submissions and the past seven days from rolling 90-day Formspree/Cherry reporting. Analytics uses its actual UTC calendar-day boundaries and explicitly labels the incomplete current day. Missing sources display unavailable values rather than zero. The source panels cover:
 
@@ -57,6 +57,6 @@ Analytics counts include only visitors who granted analytics consent. GA4 `gener
 
 ## Navigation and accessibility
 
-The 256px desktop sidebar collapses to icons. Mobile navigation uses a shadcn Sheet and closes on selection; focus moves to the new section heading. Sidebar controls provide theme switching and explicit lock. The sidebar and private views only mount after authentication. A skip link targets the page heading. The detail dialog preserves full multiline notes.
+The 256px desktop sidebar collapses to icons. Mobile navigation uses a shadcn Sheet and closes on selection; focus moves to the new section heading. Sidebar controls provide theme switching and explicit lock. The sidebar and private views only mount after authentication. A skip link targets the page heading. The detail dialog preserves full multiline notes and campaign attribution. Metric information, source health, and methodology use labeled click/tap dialogs; tooltips only supplement controls. Essential unavailable and subtotal warnings stay visible.
 
 For design verification, use synthetic data only. Check 320px and 390px layouts, keyboard navigation, dark mode, filter retention, optional report failures, and logout. The October 4 redesign passed its TypeScript/build checks, 42 tests, and dependency audit. Live release verification remains distinct from local synthetic checks.
