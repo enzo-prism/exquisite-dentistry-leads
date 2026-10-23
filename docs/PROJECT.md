@@ -27,7 +27,7 @@ Production form ID is fixed to xkgknpkl, not request-controlled. Real API keys r
 
 ## Shared password
 
-Production `DASHBOARD_PASSWORD` is `exquisite`. It was set in the Vercel production environment on 21 Sep 2026 and confirmed with a same-origin login. The value is not in the frontend. Preview and development do not carry it. Password changes do not revoke cookies already issued; rotate `SESSION_SECRET` to sign everyone out. See README.md for the session lifetime and the rest of the server configuration.
+Production credentials are managed privately in 1Password and Vercel. Rotate both `DASHBOARD_PASSWORD` and `SESSION_SECRET` together, then deploy to invalidate existing sessions. Never commit credential values. Preview and development must not carry production credentials.
 
 Do not change Formspree classifications, delete submissions, send notifications, create bookings or deploy as part of a local verification run.
 

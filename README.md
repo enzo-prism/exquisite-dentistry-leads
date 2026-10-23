@@ -32,7 +32,7 @@ Set these in Vercel production environment variables, never VITE_* or checked-in
 | Variable | Purpose |
 | --- | --- |
 | FORMSPREE_READ_KEY | Existing read-only API key for form xkgknpkl; never use its master key. |
-| DASHBOARD_PASSWORD | Shared practice password. Production value, set 21 Sep 2026: `exquisite`. Code rejects anything shorter than 8 characters. Practice-shared login, not staff accounts. |
+| DASHBOARD_PASSWORD | Strong shared practice password managed privately in 1Password and Vercel. Never commit its value. |
 | SESSION_SECRET | Random signing secret, at least 32 characters. Rotate to revoke all sessions. |
 | GOOGLE_SERVICE_ACCOUNT_JSON | Service account JSON used only to read Cherry mail for enzo@design-prism.com. Never commit it. |
 | GOOGLE_IMPERSONATE | Mailbox to read. Production is `enzo@design-prism.com`. |
@@ -44,7 +44,7 @@ Set these in Vercel production environment variables, never VITE_* or checked-in
 
 Obtain explicit approval before configuring external credentials or publishing. Production fails closed when configuration is absent. Configuring production variables does not authorize preview environments to access real submissions.
 
-On 21 Sep 2026 the production `DASHBOARD_PASSWORD` was set to `exquisite` and the production deployment was rebuilt so the new value is live. A same-origin login with that password returned 200. A wrong password returned 401. Preview and development were left unchanged. Browsers that signed in before the change keep a valid cookie until it expires or `SESSION_SECRET` is rotated.
+Production credentials are managed privately in 1Password and Vercel. Rotate both `DASHBOARD_PASSWORD` and `SESSION_SECRET` together, then deploy to invalidate existing sessions. Never commit credential values.
 
 ## Verification
 
