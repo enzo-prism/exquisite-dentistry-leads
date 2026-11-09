@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { CampaignStatus } from './components/CampaignStatus'
 import {
   ArrowDownUp,
   CalendarDays,
@@ -175,7 +176,10 @@ function App() {
   const [loaded, setLoaded] = useState(false)
   const requestVersion = useRef(0)
   const explicitlyLocked = useRef(false)
+  const accessRef = useRef(false)
+  const [sessionChecked, setSessionChecked] = useState(false)
   const clearPrivateData = useCallback(() => {
+    accessRef.current = false
     requestVersion.current += 1
     setLeads([])
     setSelected(null)
@@ -231,6 +235,7 @@ function App() {
       setLeads(data.leads)
       setFetchedAt(data.meta?.fetchedAt || '')
       setLoaded(true)
+      accessRef.current = true
       setHasAccess(true)
       setSelected(current => current ? data.leads.find((lead: Lead) => lead.id === current.id) ?? null : null)
     } catch {
@@ -242,11 +247,13 @@ function App() {
         setWebsite(null)
         setLoaded(false)
       }
-    } finally { if (version === requestVersion.current) setLoading(false) }
+    } finally { if (version === requestVersion.current) { setLoading(false); setSessionChecked(true) } }
   }, [clearPrivateData])
   useEffect(() => {
     void refresh()
-    const onVisible = () => { if (document.visibilityState === 'visible' && !explicitlyLocked.current) void refresh() }
+    // A signed-out window must stay on the login form instead of replacing it
+    // with the session-check screen every time focus or visibility changes.
+    const onVisible = () => { if (document.visibilityState === 'visible' && accessRef.current && !explicitlyLocked.current) void refresh() }
     document.addEventListener('visibilitychange', onVisible)
     window.addEventListener('focus', onVisible)
     const interval = window.setInterval(onVisible, 60_000)
@@ -301,7 +308,7 @@ function App() {
     } catch { setError('Sign-out could not be confirmed. Close this browser window to protect your session.') }
   }
 
-  if (!hasAccess && loading) return <main className="access-shell"><p role="status">Checking secure session…</p></main>
+  if (!hasAccess && loading && !sessionChecked) return <main className="access-shell"><p role="status">Checking secure session…</p></main>
   if (!hasAccess) return <><AccessGate theme={theme} onToggleTheme={toggleTheme} onUnlock={async () => { explicitlyLocked.current = false; await refresh() }} />{error && <div className="session-error" role="alert">{error}<Button onClick={() => void refresh()}>Retry connection</Button></div>}</>
 
   return (
@@ -319,6 +326,7 @@ function App() {
           </div>
           <Button variant="ghost" onClick={() => setView('inbox')} aria-label="Open lead inbox"><ArrowUpRight data-icon="inline-end" /></Button>
         </section>}
+        {view === 'overview' && <CampaignStatus />}
         <div hidden={view !== 'overview' && view !== 'activity'}>
           <WebsiteData view={view === 'activity' ? 'activity' : 'overview'} report={website} loading={loading && !website} />
         </div>

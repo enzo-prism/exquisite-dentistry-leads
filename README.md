@@ -102,3 +102,11 @@ Search Console totals come from the ungrouped property report, never sums of top
 Both integrations use server-side read-only scopes. Successful aggregate reports are cached per server instance for up to 15 minutes, degraded reports for one minute, with concurrent requests coalesced. HTTP responses remain private/no-store and require authentication even on cache hits. Source dialogs show the fetch time. A failed optional provider does not discard the inbox; lock or any authentication expiry clears all private client state. The legacy Vercel analytics query is disabled by default to avoid repeated rate-limited reads.
 
 Release verification for the Google reporting integration: all 59 tests and the production build passed; production dependency audit found zero vulnerabilities. Synthetic desktop Traffic and 320px Search accessibility audits passed with zero violations after making horizontal tables keyboard-focusable. Both live Google providers returned healthy reports before deployment. Production readback remains a separate release check.
+
+## November 8 dashboard maintenance
+
+Added the dated ChatGPT veneer campaign verification (Serving at 21:16 PST, $750 total, $3.50 maximum CPC, November 25 end). This is manually verified context, not a live Ads Manager data feed. Delivery counts and conversion ingestion remain unverified.
+
+Signed-out windows keep the login form stable when focus or visibility changes; authenticated refresh and private-state clearing are preserved. Vite and its affected transitive dependency were patched. All 59 tests, production build, and dependency audit passed. Synthetic browser checks covered login, source views, lock, and responsive rendering.
+
+Production password and signing secret are non-exportable in Vercel. They were not changed or bypassed. Without an authenticated production session, this maintenance cannot establish current Formspree, Cherry, or private Google provider totals. Live private reconciliation is still required; the historical October results above are not current measurements.
