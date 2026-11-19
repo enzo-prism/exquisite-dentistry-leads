@@ -22,7 +22,7 @@ Deploy to the existing exquisite-dentistry-leads Vercel project. Verify authenti
 - Received timestamps use Pacific time; the seven-day metric uses the current time.
 - Loading, refresh, failure and last-successful-refresh states. Incomplete provider reads fail rather than appearing as a partial inbox.
 - Private state stays in memory and is cleared on lock or expired authentication. No contact data in URLs, browser storage, analytics or logs.
-- Formspree spam and separate Simplifeye bookings are excluded.
+- Formspree spam and separate Simplifeye bookings are excluded. A small id-keyed list in `server/excluded-submissions.js` also hides known non-patient vendor pitches that Formspree still delivered to the non-spam inbox. Exclusions use Formspree `_id`/`id` or `measurement_event_id` only, never name or contact fields, and do not change Formspree records.
 - Cherry financing shows approval and funded-plan notices. Website & search shows GA4 traffic and Google Search Console performance. Approved Cherry dollars are a credit limit. Funded Cherry dollars are the purchase amount on an issued plan, not collected production. Completed Simplifeye bookings are not available.
 
 ## Server-only configuration

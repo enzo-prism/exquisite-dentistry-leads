@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { isExcludedSubmission } from './excluded-submissions.js'
 
 export const FORM_ID = 'xkgknpkl'
 const text = value => typeof value === 'string' ? value : typeof value === 'number' ? String(value) : ''
@@ -73,6 +74,7 @@ export async function fetchSubmissions(key, fetcher = fetch) {
       const lead = normalize(row)
       if (seen.has(lead.id)) throw new Error('pagination_changed')
       seen.add(lead.id)
+      if (isExcludedSubmission(row, lead)) continue
       leads.push(row)
     }
     if (payload.submissions.length < pageSize) return { submissions: leads, meta: { provider: 'Formspree', formId: FORM_ID, fetchedAt: new Date().toISOString(), total: leads.length, spamExcluded: true, complete: true } }
